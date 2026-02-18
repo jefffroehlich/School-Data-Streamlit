@@ -5,7 +5,7 @@ import os
 
 # ─── CONFIG ────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="CAASPP Performance Analytics",
+    page_title="Add Financial",
     page_icon="◆",
     layout="wide",
     initial_sidebar_state="expanded",
