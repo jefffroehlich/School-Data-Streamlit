@@ -734,7 +734,7 @@ all_counties = sorted(df_master["County"].unique())
 
 # ---------- district_mode via session state (replaces toggle) ----------
 if "district_mode" not in st.session_state:
-    st.session_state["district_mode"] = False
+    st.session_state["district_mode"] = True
 
 def _set_school_mode():
     st.session_state["district_mode"] = False
@@ -959,17 +959,19 @@ def _fit_card(label, score, rank, school_color):
     r_num = f"#{rank}" if rank is not None else "—"
     r_of = f"of {total_ranked}" if rank is not None else ""
 
-    # Score-based gradient ring: green(10) → yellow(5) → red(0)
+    # Score-based gradient ring: green(≥9) → yellow(6) → red(≤3)
     if score is not None:
-        pct = min(max(score, 0), 10) / 10  # 0—1
-        # Interpolate hue: 0 (red) at score=0 → 60 (yellow) at 5 → 130 (green) at 10
+        clamped = min(max(score, 3.0), 9.0)
+        pct = (clamped - 3.0) / 6.0  # 0—1 over the 3–9 range
+        # Interpolate hue: 0 (red) at 3 → 60 (yellow) at 6 → 130 (green) at 9
         if pct <= 0.5:
             hue = int(pct * 2 * 60)        # 0→60
         else:
             hue = int(60 + (pct - 0.5) * 2 * 70)  # 60→130
         ring_color = f"hsl({hue}, 80%, 50%)"
         # Conic gradient: colored arc from 0 to score%, then dark for the rest
-        arc_deg = int(pct * 360)
+        arc_pct = min(max(score, 0), 10) / 10
+        arc_deg = int(arc_pct * 360)
         ring_bg = f"conic-gradient({ring_color} 0deg, {ring_color} {arc_deg}deg, {BORDER} {arc_deg}deg, {BORDER} 360deg)"
     else:
         ring_bg = BORDER
@@ -1042,6 +1044,7 @@ col_cfg = {
     "Custom Fit Score": st.column_config.NumberColumn(
         "Score",
         format="%.1f",
+        width="6em",  # just enough for '10.0'
     ),
     "SMATH_Y1": st.column_config.NumberColumn("Math %",   format="%.1f", width="small"),
     "SELA_Y1":  st.column_config.NumberColumn("ELA %",    format="%.1f", width="small"),
@@ -1073,22 +1076,44 @@ def _score_bar(col):
         except (TypeError, ValueError):
             styles.append("")
             continue
-        pct = min(max(s, 0), 10) / 10
+        clamped = min(max(s, 3.0), 9.0)
+        pct = (clamped - 3.0) / 6.0  # 0—1 over the 3–9 range
         if pct <= 0.5:
             hue = int(pct * 2 * 60)           # 0 → 60
         else:
             hue = int(60 + (pct - 0.5) * 2 * 70)  # 60 → 130
-        bar_w = int(pct * 100)
         c = f"hsl({hue}, 80%, 50%)"
         styles.append(
-            f"background: linear-gradient(to right, {c} 0%, {c} {bar_w}%, transparent {bar_w}%);"
-            f" color: {c}; font-weight: 700;"
+            f"background-color: {c}; color: #181818; font-weight: 700; text-align: center;"
         )
     return styles
 
+
+# Set Custom Fit Score column width via Styler CSS
+
+def _set_score_col_width(styler):
+    # Set width for both cell and header using CSS with !important
+    styler.set_table_styles([
+        {"selector": "th.col_heading.level0.col0", "props": [
+            ("min-width", "3.5em !important"),
+            ("max-width", "3.5em !important"),
+            ("width", "3.5em !important"),
+            ("text-align", "center !important")
+        ]},
+        {"selector": "td.col0", "props": [
+            ("min-width", "3.5em !important"),
+            ("max-width", "3.5em !important"),
+            ("width", "3.5em !important"),
+            ("text-align", "center !important")
+        ]},
+    ], overwrite=False)
+    return styler
+
 _styled = (_table_df.style
            .apply(_highlight_ab, axis=1)
-           .apply(_score_bar, subset=["Custom Fit Score"]))
+           .apply(_score_bar, subset=["Custom Fit Score"])
+           .pipe(_set_score_col_width)
+)
 
 st.dataframe(
     _styled,
