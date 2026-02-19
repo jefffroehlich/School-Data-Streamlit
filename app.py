@@ -1,4 +1,4 @@
-import streamlit as st
+﻿import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
 import plotly.graph_objects as go
@@ -21,13 +21,14 @@ TEXT     = "#eaecf0"
 MUTED    = "#bebfc5"
 ACCENT_A = "#7e80f1"   # indigo  — School A
 ACCENT_B = "#f4556f"   # rose    — School B
-ACCENT_P = "#c4e80c"   # amber   — Ranking parameters
+ACCENT_P = "#addae5"   # amber   — Ranking parameters
 
 # ─── GLOBAL STYLES ─────────────────────────────────────────────────────
 st.markdown(f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
 
 /* ── reset ── */
 footer {{visibility:hidden;}}
@@ -45,7 +46,7 @@ header[data-testid="stHeader"] button {{
 .stApp {{
     background: {BG};
     color: {TEXT};
-    font-family: 'Inter', sans-serif;
+    font-family: 'DM Sans', sans-serif;
 }}
 .block-container {{
     padding: 4.5rem 1.6rem 2rem !important;
@@ -137,10 +138,10 @@ div[data-testid="stMetricValue"] > div {{
     color: {TEXT} !important;
     font-size: 1.55rem !important;
     font-weight: 800 !important;
-    font-family: 'JetBrains Mono', monospace !important;
+    font-family: 'Space Mono', monospace !important;
 }}
 div[data-testid="stMetricDelta"] {{
-    font-family: 'JetBrains Mono', monospace !important;
+    font-family: 'Space Mono', monospace !important;
     font-weight: 600 !important;
     font-size: 0.72rem !important;
 }}
@@ -151,6 +152,7 @@ div[data-testid="stMetricDelta"] svg {{
 
 /* ── section titles ── */
 .sec-label {{
+    font-family: 'Space Grotesk', sans-serif;
     font-size: 0.75rem;
     font-weight: 700;
     color: {MUTED};
@@ -169,7 +171,7 @@ div[data-testid="stMetricDelta"] svg {{
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.04em;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Space Mono', monospace;
 }}
 .tag-a {{ background: rgba(99,102,241,0.15); color: {ACCENT_A}; }}
 .tag-b {{ background: rgba(244,63,94,0.15); color: {ACCENT_B}; }}
@@ -233,17 +235,61 @@ h1, h2, h3 {{ margin-top: 0 !important; }}
 /* ── plotly modebar hide ── */
 .modebar {{ display: none !important; }}
 
-/* ── Dropdown borders: indigo for A, rose for B ── */
-/* Column order: distA(1) schA(2) distB(3) schB(4) swap(5) toggle(6) county(7) */
-[data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(1) [data-testid="stSelectbox"] > div > div,
-[data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(2) [data-testid="stSelectbox"] > div > div {{
+/* ── Dropdown borders: indigo for A (col 1), rose for B (col 2) ── */
+/* Layout: A-stack(1) B-stack(2) buttons(3) county(4) */
+[data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(1) [data-testid="stSelectbox"] > div > div {{
     border: 2px solid {ACCENT_A} !important;
     border-radius: 8px !important;
 }}
-[data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(3) [data-testid="stSelectbox"] > div > div,
-[data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(4) [data-testid="stSelectbox"] > div > div {{
+[data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(2) [data-testid="stSelectbox"] > div > div {{
     border: 2px solid {ACCENT_B} !important;
     border-radius: 8px !important;
+}}
+
+/* ── Compare mode buttons — vertical alignment with dropdown stacks ── */
+[data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(3) {{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}}
+/* Neutral compare buttons — no accent color */
+[data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(3) button {{
+    background: transparent !important;
+    border: 1px solid {BORDER} !important;
+    color: {MUTED} !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.06em !important;
+}}
+[data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(3) button[kind="primary"] {{
+    background: rgba(255,255,255,0.06) !important;
+    border: 1px solid {TEXT} !important;
+    color: {TEXT} !important;
+}}
+.cmp-btn {{
+    flex: 1;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: center;
+    cursor: pointer;
+    border: 2px solid {BORDER};
+    color: {MUTED};
+    background: transparent;
+    transition: all 0.15s ease;
+}}
+.cmp-btn.active {{
+    background: rgba(196,232,12,0.10);
+    border-color: {ACCENT_P};
+    color: {ACCENT_P};
+    box-shadow: 0 0 10px rgba(196,232,12,0.25);
+}}
+.cmp-btn:hover:not(.active) {{
+    border-color: {MUTED};
+    color: {TEXT};
 }}
 
 /* ──────────────────────────────────────────────────────  */
@@ -392,14 +438,15 @@ section[data-testid="stSidebar"] [data-testid="stTickBar"] {{
     gap: 8px;
 }}
 .fit-card-name {{
+    font-family: 'Space Grotesk', sans-serif;
     font-size: 1rem;
-    font-weight: 800;
-    letter-spacing: 0.02em;
+    font-weight: 700;
+    letter-spacing: 0.01em;
     line-height: 1.2;
     flex: 1;
 }}
 .fit-card-badge {{
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -421,9 +468,28 @@ section[data-testid="stSidebar"] [data-testid="stTickBar"] {{
     align-items: center;
     gap: 4px;
 }}
+/* Gradient ring around score number */
+.fit-card-ring {{
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}}
+.fit-card-ring-inner {{
+    width: 94px;
+    height: 94px;
+    border-radius: 50%;
+    background: {CARD};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}}
 .fit-card-score {{
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 3.6rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 2.4rem;
     font-weight: 900;
     line-height: 1;
     letter-spacing: -0.03em;
@@ -446,7 +512,7 @@ section[data-testid="stSidebar"] [data-testid="stTickBar"] {{
     min-width: 80px;
 }}
 .fit-card-rank-num {{
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 2rem;
     font-weight: 900;
     line-height: 1;
@@ -456,7 +522,7 @@ section[data-testid="stSidebar"] [data-testid="stTickBar"] {{
     font-size: 0.62rem;
     font-weight: 600;
     color: {MUTED};
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Space Mono', monospace;
 }}
 .fit-card-rank-label {{
     font-size: 0.55rem;
@@ -477,13 +543,7 @@ section[data-testid="stSidebar"] [data-testid="stTickBar"] {{
     transition: width 0.4s ease;
 }}
 
-/* Override Streamlit ProgressColumn bar color → amber */
-[data-testid="stDataFrame"] [role="gridcell"] [data-testid="stProgress"] > div {{
-    background: {ACCENT_P} !important;
-}}
-[data-testid="stDataFrame"] [role="gridcell"] .gdg-progress-bar {{
-    background: {ACCENT_P} !important;
-}}
+
 
 /* ── compact top bar selectors ── */
 .top-bar-row {{
@@ -527,19 +587,19 @@ def _weight_to_label(w):
 CARD_GROUPS = [
     {
         "title": "Academic Excellence",
-        "icon":  "🎓",
+        "icon":  "ðŸŽ“",
         "css":   "a",
         "keys":  ["SMATH_Y1", "SELA_Y1"],
     },
     {
         "title": "Environment & Scale",
-        "icon":  "🏫",
+        "icon":  "ðŸ«",
         "css":   "c",
         "keys":  ["AVG_SIZE"],
     },
     {
         "title": "Student Demographics",
-        "icon":  "👥",
+        "icon":  "ðŸ‘¥",
         "css":   "b",
         "keys":  ["PERDI", "PEREL", "PERSD"],
     },
@@ -649,9 +709,9 @@ def calculate_custom_scores(df, settings):
         total_weight += weight
 
     if total_weight > 0:
-        scored["Custom Fit Score"] = (weighted_sum / total_weight * 100).round(1)
+        scored["Custom Fit Score"] = (weighted_sum / total_weight * 10).round(1)
     else:
-        scored["Custom Fit Score"] = 50.0
+        scored["Custom Fit Score"] = 5.0
 
     return scored.sort_values("Custom Fit Score", ascending=False)
 
@@ -660,8 +720,8 @@ def calculate_custom_scores(df, settings):
 if "da_w" not in st.session_state:
     st.session_state["da_w"] = "Encinitas Union Elementary"
     st.session_state["sa_w"] = "El Camino Creek Elementary"
-    st.session_state["db_w"] = "Oceanside Unified"
-    st.session_state["sb_w"] = "Oceanside High"
+    st.session_state["db_w"] = "Del Mar Union Elementary"
+    st.session_state["sb_w"] = "Sage Canyon"
 
 def handle_swap():
     da, sa = st.session_state.da_w, st.session_state.sa_w
@@ -672,64 +732,79 @@ def handle_swap():
 # ─── TOP BAR — COUNTY + SCHOOL SELECTORS ──────────────────────────────
 all_counties = sorted(df_master["County"].unique())
 
-_hdr_da, _hdr_sa, _hdr_db, _hdr_sb, _hdr_swap, _hdr_mode, _hdr_county = st.columns(
-    [1.2, 1.4, 1.2, 1.4, 0.35, 0.6, 1], gap="small", vertical_alignment="bottom"
+# ---------- district_mode via session state (replaces toggle) ----------
+if "district_mode" not in st.session_state:
+    st.session_state["district_mode"] = False
+
+def _set_school_mode():
+    st.session_state["district_mode"] = False
+def _set_district_mode():
+    st.session_state["district_mode"] = True
+
+district_mode = st.session_state["district_mode"]
+
+# ---------- layout: A-stack | B-stack | buttons | county --------
+_col_a, _col_b, _col_btns, _col_county = st.columns(
+    [1.2, 1.2, 1.0, 0.7], gap="small", vertical_alignment="bottom"
 )
-with _hdr_county:
+
+with _col_county:
     sel_county = st.selectbox("County", all_counties,
                               index=all_counties.index("San Diego") if "San Diego" in all_counties else 0,
                               label_visibility="collapsed")
-with _hdr_mode:
-    district_mode = st.toggle("District", value=False)
 
 county_df = df_master[df_master["County"] == sel_county]
 districts = sorted(county_df["District"].unique())
 
-with _hdr_da:
+with _col_a:
     da = st.selectbox("District A", districts, key="da_w", label_visibility="collapsed")
-sa_list = sorted(county_df[county_df["District"] == da]["School"].unique())
-with _hdr_sa:
+    sa_list = sorted(county_df[county_df["District"] == da]["School"].unique())
     sa = st.selectbox("School A", sa_list, key="sa_w", label_visibility="collapsed")
-with _hdr_db:
+
+with _col_b:
     db = st.selectbox("District B", districts, key="db_w", label_visibility="collapsed")
-sb_list = sorted(county_df[county_df["District"] == db]["School"].unique())
-with _hdr_sb:
+    sb_list = sorted(county_df[county_df["District"] == db]["School"].unique())
     sb = st.selectbox("School B", sb_list, key="sb_w", label_visibility="collapsed")
-with _hdr_swap:
-    st.button("⇅", on_click=handle_swap, use_container_width=True)
+
+with _col_btns:
+    st.button("Compare Districts", on_click=_set_district_mode, use_container_width=True,
+              type="primary" if district_mode else "secondary")
+    st.button("Compare Schools", on_click=_set_school_mode, use_container_width=True,
+              type="primary" if not district_mode else "secondary")
 
 # ─── DYNAMIC GLOW on active dropdowns (school vs district mode) ──────
+_first_block = '[data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type'
 if district_mode:
-    # Glow on district dropdowns (columns 1, 3)
+    # Glow on district dropdowns (1st widget in col 1 & 2), dim school (2nd)
     glow_css = f"""
     <style>
-    [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(1) [data-testid="stSelectbox"] > div > div {{
+    {_first_block} > [data-testid="stColumn"]:nth-child(1) > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) [data-testid="stSelectbox"] > div > div {{
         box-shadow: 0 0 8px 2px rgba(99,102,241,0.45) !important;
     }}
-    [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(3) [data-testid="stSelectbox"] > div > div {{
+    {_first_block} > [data-testid="stColumn"]:nth-child(2) > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) [data-testid="stSelectbox"] > div > div {{
         box-shadow: 0 0 8px 2px rgba(244,63,94,0.45) !important;
     }}
-    /* Dim the non-active school dropdowns */
-    [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(2) [data-testid="stSelectbox"] > div > div,
-    [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(4) [data-testid="stSelectbox"] > div > div {{
+    {_first_block} > [data-testid="stColumn"]:nth-child(1) > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(2) [data-testid="stSelectbox"] > div > div,
+    {_first_block} > [data-testid="stColumn"]:nth-child(2) > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(2) [data-testid="stSelectbox"] > div > div {{
         opacity: 0.4 !important;
+        box-shadow: none !important;
     }}
     </style>
     """
 else:
-    # Glow on school dropdowns (columns 2, 4), dim district dropdowns
+    # Glow on school dropdowns (2nd widget in col 1 & 2), dim district (1st)
     glow_css = f"""
     <style>
-    [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(2) [data-testid="stSelectbox"] > div > div {{
+    {_first_block} > [data-testid="stColumn"]:nth-child(1) > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(2) [data-testid="stSelectbox"] > div > div {{
         box-shadow: 0 0 8px 2px rgba(99,102,241,0.45) !important;
     }}
-    [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(4) [data-testid="stSelectbox"] > div > div {{
+    {_first_block} > [data-testid="stColumn"]:nth-child(2) > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(2) [data-testid="stSelectbox"] > div > div {{
         box-shadow: 0 0 8px 2px rgba(244,63,94,0.45) !important;
     }}
-    /* Dim the non-active district dropdowns */
-    [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(1) [data-testid="stSelectbox"] > div > div,
-    [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(3) [data-testid="stSelectbox"] > div > div {{
+    {_first_block} > [data-testid="stColumn"]:nth-child(1) > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) [data-testid="stSelectbox"] > div > div,
+    {_first_block} > [data-testid="stColumn"]:nth-child(2) > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) [data-testid="stSelectbox"] > div > div {{
         opacity: 0.4 !important;
+        box-shadow: none !important;
     }}
     </style>
     """
@@ -802,12 +877,6 @@ with st.sidebar:
 
     # ── TARGET PREFERENCES (separate section) ──
     st.markdown("---")
-    st.markdown(
-        f'<div style="font-size:0.82rem;font-weight:800;letter-spacing:0.1em;'
-        f'text-transform:uppercase;color:{ACCENT_P};margin-bottom:0.5rem;">'
-        f'Target Preferences</div>',
-        unsafe_allow_html=True,
-    )
     for grp in CARD_GROUPS:
         for col in grp["keys"]:
             cfg = METRIC_CONFIG[col]
@@ -854,8 +923,6 @@ else:
     entity = "District"
 
 # ─── CUSTOM FIT SCORE RANKINGS (top section) ───────────────────────────
-st.markdown('<div class="sec-label">Custom Fit Score — County Rankings</div>',
-            unsafe_allow_html=True)
 
 # Score every school in the county
 scored_county = calculate_custom_scores(county_df, scoring_settings)
@@ -888,21 +955,27 @@ else:
     rank_b  = int(_row_b["_rank"].values[0]) if len(_row_b) else None
 
 def _fit_card(label, score, rank, school_color):
-    s = f"{score}" if score is not None else "—"
+    s = f"{score:.1f}" if score is not None else "—"
     r_num = f"#{rank}" if rank is not None else "—"
     r_of = f"of {total_ranked}" if rank is not None else ""
-    pct = min(score or 0, 100)  # for bar width
 
-    # Score-based quality tint for the bar fill
-    if score is not None and score >= 70:
-        quality_color = "#22c55e"  # green
-    elif score is not None and score >= 40:
-        quality_color = "#eab308"  # amber
+    # Score-based gradient ring: green(10) → yellow(5) → red(0)
+    if score is not None:
+        pct = min(max(score, 0), 10) / 10  # 0—1
+        # Interpolate hue: 0 (red) at score=0 → 60 (yellow) at 5 → 130 (green) at 10
+        if pct <= 0.5:
+            hue = int(pct * 2 * 60)        # 0→60
+        else:
+            hue = int(60 + (pct - 0.5) * 2 * 70)  # 60→130
+        ring_color = f"hsl({hue}, 80%, 50%)"
+        # Conic gradient: colored arc from 0 to score%, then dark for the rest
+        arc_deg = int(pct * 360)
+        ring_bg = f"conic-gradient({ring_color} 0deg, {ring_color} {arc_deg}deg, {BORDER} {arc_deg}deg, {BORDER} 360deg)"
     else:
-        quality_color = "#ef4444"  # red
+        ring_bg = BORDER
+        ring_color = MUTED
 
     # Compute rgba glow from school_color
-    # Indigo #6366f1 → 99,102,241  |  Rose #f43f5e → 244,63,94
     if school_color == ACCENT_A:
         glow_rgba = "99,102,241"
     else:
@@ -915,10 +988,14 @@ def _fit_card(label, score, rank, school_color):
             <div class="fit-card-name" style="color:{school_color};">{label}</div>
             <div class="fit-card-badge" style="background:rgba({glow_rgba},0.12);color:{school_color};">{entity}</div>
         </div>
-        <!-- Body: giant score + rank box -->
+        <!-- Body: score ring + rank box -->
         <div class="fit-card-body">
             <div class="fit-card-score-wrap">
-                <div class="fit-card-score" style="color:{school_color};">{s}</div>
+                <div class="fit-card-ring" style="background:{ring_bg};">
+                    <div class="fit-card-ring-inner">
+                        <div class="fit-card-score" style="color:{ring_color};">{s}</div>
+                    </div>
+                </div>
                 <div class="fit-card-score-label">Custom Fit Score</div>
             </div>
             <div class="fit-card-rank-wrap">
@@ -930,7 +1007,7 @@ def _fit_card(label, score, rank, school_color):
     </div>
     """
 
-cf_col_a, cf_col_b = st.columns([1, 1], gap="small")
+cf_col_a, cf_col_b, cf_pad1, cf_pad2 = st.columns([1.2, 1.2, 1.0, 0.7], gap="small")
 with cf_col_a:
     st.markdown(_fit_card(label_a, score_a, rank_a, ACCENT_A), unsafe_allow_html=True)
 with cf_col_b:
@@ -962,26 +1039,63 @@ else:
     display_cols = [c for c in display_cols if c in scored_display.columns]
 
 col_cfg = {
-    "Custom Fit Score": st.column_config.ProgressColumn(
-        "Custom Fit Score",
-        min_value=0,
-        max_value=100,
+    "Custom Fit Score": st.column_config.NumberColumn(
+        "Score",
         format="%.1f",
     ),
-    "SMATH_Y1": st.column_config.NumberColumn("Math %", format="%.1f"),
-    "SELA_Y1":  st.column_config.NumberColumn("ELA %", format="%.1f"),
-    "AVG_SIZE": st.column_config.NumberColumn("Class Size", format="%.1f"),
-    "PERDI":    st.column_config.NumberColumn("Socio-Econ Disadv %", format="%.1f"),
-    "PEREL":    st.column_config.NumberColumn("English Learners %", format="%.1f"),
-    "PERSD":    st.column_config.NumberColumn("Disabilities %", format="%.1f"),
+    "SMATH_Y1": st.column_config.NumberColumn("Math %",   format="%.1f", width="small"),
+    "SELA_Y1":  st.column_config.NumberColumn("ELA %",    format="%.1f", width="small"),
+    "AVG_SIZE": st.column_config.NumberColumn("Class Sz", format="%.1f", width="small"),
+    "PERDI":    st.column_config.NumberColumn("Disadv %", format="%.1f", width="small"),
+    "PEREL":    st.column_config.NumberColumn("EL %",     format="%.1f", width="small"),
+    "PERSD":    st.column_config.NumberColumn("SWD %",    format="%.1f", width="small"),
 }
 
+# Build display dataframe and highlight School A / School B rows
+_table_df = scored_display[display_cols].copy().reset_index(drop=True)
+_match_col = "District" if district_mode else "School"
+
+def _highlight_ab(row):
+    """Return background style per row for school A (indigo) / school B (rose)."""
+    val = row.get(_match_col, "")
+    if val == label_a:
+        return [f"background-color: rgba(99,102,241,0.18); color: {ACCENT_A}"] * len(row)
+    elif val == label_b:
+        return [f"background-color: rgba(244,63,94,0.18); color: {ACCENT_B}"] * len(row)
+    return [""] * len(row)
+
+def _score_bar(col):
+    """CSS bar background per cell — color matches the card-ring hue."""
+    styles = []
+    for v in col:
+        try:
+            s = float(v)
+        except (TypeError, ValueError):
+            styles.append("")
+            continue
+        pct = min(max(s, 0), 10) / 10
+        if pct <= 0.5:
+            hue = int(pct * 2 * 60)           # 0 → 60
+        else:
+            hue = int(60 + (pct - 0.5) * 2 * 70)  # 60 → 130
+        bar_w = int(pct * 100)
+        c = f"hsl({hue}, 80%, 50%)"
+        styles.append(
+            f"background: linear-gradient(to right, {c} 0%, {c} {bar_w}%, transparent {bar_w}%);"
+            f" color: {c}; font-weight: 700;"
+        )
+    return styles
+
+_styled = (_table_df.style
+           .apply(_highlight_ab, axis=1)
+           .apply(_score_bar, subset=["Custom Fit Score"]))
+
 st.dataframe(
-    scored_display[display_cols],
+    _styled,
     column_config=col_cfg,
     use_container_width=True,
     hide_index=True,
-    height=420,
+    height=740,
 )
 
 with st.expander("Detailed Visual Comparisons", expanded=False):
@@ -1013,7 +1127,7 @@ with st.expander("Detailed Visual Comparisons", expanded=False):
             f'<div style="display:flex;align-items:center;'
             f'margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid {BORDER};">'
             f'<div style="display:flex;align-items:baseline;gap:6px;">'
-            f'<span style="font-family:\'JetBrains Mono\',monospace;font-size:1.6rem;'
+            f'<span style="font-family:\'Space Mono\',monospace;font-size:1.6rem;'
             f'font-weight:700;color:{color};line-height:1;">{value:.1f}</span>'
             f'<span style="font-size:0.65rem;color:{MUTED};'
             f'font-family:Inter,sans-serif;">students</span>'
@@ -1078,14 +1192,14 @@ with st.expander("Detailed Visual Comparisons", expanded=False):
         x=subjects, y=vals_a, name=label_a,
         marker=dict(color=ACCENT_A, cornerradius=4),
         text=[f"{v:.1f}%" for v in vals_a], textposition="outside",
-        textfont=dict(color=ACCENT_A, size=12, family="JetBrains Mono", weight=700),
+        textfont=dict(color=ACCENT_A, size=12, family="Space Mono", weight=700),
         width=0.32,
     ))
     fig_b.add_trace(go.Bar(
         x=subjects, y=vals_b, name=label_b,
         marker=dict(color=ACCENT_B, cornerradius=4),
         text=[f"{v:.1f}%" for v in vals_b], textposition="outside",
-        textfont=dict(color=ACCENT_B, size=12, family="JetBrains Mono", weight=700),
+        textfont=dict(color=ACCENT_B, size=12, family="Space Mono", weight=700),
         width=0.32,
     ))
     fig_b.update_layout(
@@ -1125,7 +1239,7 @@ with st.expander("Detailed Visual Comparisons", expanded=False):
             y=eth["L"], x=[-v for v in eth["A"]], orientation="h",
             marker=dict(color=ACCENT_A, cornerradius=3),
             text=[f"{v:.1f}%" for v in eth["A"]], textposition="inside",
-            textfont=dict(color="white", size=10, family="JetBrains Mono"),
+            textfont=dict(color="white", size=10, family="Space Mono"),
             hovertemplate="%{y}: %{x:abs:.1f}%<extra>A</extra>",
             name=label_a,
         ))
@@ -1133,7 +1247,7 @@ with st.expander("Detailed Visual Comparisons", expanded=False):
             y=eth["L"], x=eth["B"].tolist(), orientation="h",
             marker=dict(color=ACCENT_B, cornerradius=3),
             text=[f"{v:.1f}%" for v in eth["B"]], textposition="inside",
-            textfont=dict(color="white", size=10, family="JetBrains Mono"),
+            textfont=dict(color="white", size=10, family="Space Mono"),
             hovertemplate="%{y}: %{x:.1f}%<extra>B</extra>",
             name=label_b,
         ))
@@ -1170,14 +1284,14 @@ with st.expander("Detailed Visual Comparisons", expanded=False):
             y=prog["L"], x=prog["A"].tolist(), orientation="h",
             marker=dict(color=ACCENT_A, cornerradius=3),
             text=[f"{v:.1f}%" for v in prog["A"]], textposition="outside",
-            textfont=dict(color=ACCENT_A, size=11, family="JetBrains Mono", weight=600),
+            textfont=dict(color=ACCENT_A, size=11, family="Space Mono", weight=600),
             name=label_a, width=0.35,
         ))
         fig_p.add_trace(go.Bar(
             y=prog["L"], x=prog["B"].tolist(), orientation="h",
             marker=dict(color=ACCENT_B, cornerradius=3),
             text=[f"{v:.1f}%" for v in prog["B"]], textposition="outside",
-            textfont=dict(color=ACCENT_B, size=11, family="JetBrains Mono", weight=600),
+            textfont=dict(color=ACCENT_B, size=11, family="Space Mono", weight=600),
             name=label_b, width=0.35,
         ))
         fig_p.update_layout(
