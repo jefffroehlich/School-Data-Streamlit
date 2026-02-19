@@ -17,8 +17,8 @@ BG       = "#0c0e14"
 SURFACE  = "#13151d"
 CARD     = "#191c27"
 BORDER   = "#252836"
-TEXT     = "#e2e4ec"
-MUTED    = "#90929e"
+TEXT     = "#eaecf0"
+MUTED    = "#bebfc5"
 ACCENT_A = "#7e80f1"   # indigo  — School A
 ACCENT_B = "#f4556f"   # rose    — School B
 ACCENT_P = "#c4e80c"   # amber   — Ranking parameters
@@ -279,28 +279,40 @@ section[data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stThumbV
     color: {ACCENT_P} !important;
 }}
 
-/* ── Slider track = neutral (remove progress-bar fill look) ── */
+/* ── Slider track — neutralise fill via overlay ── */
 section[data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stSliderTrack"] {{
+    position: relative !important;
+    overflow: hidden !important;
     background: {BORDER} !important;
 }}
-section[data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stSliderTrack"] > div {{
+/* Overlay that covers the Streamlit fill completely */
+section[data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stSliderTrack"]::after {{
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 !important;
     background: {BORDER} !important;
+    z-index: 1 !important;
+    pointer-events: none !important;
+    border-radius: inherit !important;
 }}
-/* Re-assert thumb color after track blanket rule */
+/* Thumb must sit above the overlay */
 section[data-testid="stSidebar"] [data-testid="stSlider"] [role="slider"] {{
+    position: relative !important;
+    z-index: 2 !important;
     background: {ACCENT_P} !important;
+    border-color: {ACCENT_P} !important;
 }}
-
-/* ── Override Streamlit primary-color in sidebar ── */
-section[data-testid="stSidebar"] {{
-    --primary-color: {ACCENT_P} !important;
+/* Thumb value must sit above overlay too */
+section[data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stThumbValue"] {{
+    position: relative !important;
+    z-index: 3 !important;
 }}
 
 /* ── Metric label above slider = neutral muted ── */
 section[data-testid="stSidebar"] [data-testid="stSlider"] label p {{
     color: {MUTED} !important;
     font-weight: 700 !important;
-    font-size: 0.75rem !important;
+    font-size: 0.82rem !important;
     letter-spacing: 0.04em !important;
     text-transform: uppercase !important;
 }}
@@ -309,7 +321,7 @@ section[data-testid="stSidebar"] [data-testid="stSlider"] label p {{
 section[data-testid="stSidebar"] [data-testid="stSlider"] {{
     padding-top: 0 !important;
     padding-bottom: 0 !important;
-    margin-bottom: -8px !important;
+    margin-bottom: -2px !important;
 }}
 
 /* ── Endpoint labels: CSS layer (JS MutationObserver handles hover) ── */
@@ -338,6 +350,8 @@ section[data-testid="stSidebar"] [data-testid="stTickBar"] {{
     font-size: 0.64rem !important;
     padding: 4px 8px !important;
     letter-spacing: 0.03em !important;
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
 }}
 .tgt-col [data-testid="stSegmentedControl"] button[aria-checked="true"] {{
     background: rgba(107,53,183,0.18) !important;
@@ -361,52 +375,106 @@ section[data-testid="stSidebar"] [data-testid="stTickBar"] {{
     color: {ACCENT_P} !important;
 }}
 
-/* Amber score cards */
+/* ── Custom Fit Score Hero Cards ── */
 .fit-card {{
-    background: {CARD};
+    background: linear-gradient(135deg, {CARD} 0%, rgba(25,28,39,0.95) 100%);
     border: 1px solid {BORDER};
-    border-left: 3px solid {ACCENT_P};
-    border-radius: 10px;
-    padding: 14px 18px 12px;
+    border-radius: 14px;
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+}}
+.fit-card-header {{
+    padding: 14px 20px 10px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 8px;
 }}
-.fit-score {{
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 2.2rem;
+.fit-card-name {{
+    font-size: 1rem;
     font-weight: 800;
-    color: {ACCENT_P};
-    line-height: 1;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    flex: 1;
 }}
-.fit-label {{
-    font-size: 0.85rem;
+.fit-card-badge {{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
     font-weight: 700;
-    color: {TEXT};
-    letter-spacing: 0.05em;
-    margin-bottom: 2px;
+    letter-spacing: 0.06em;
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+    text-transform: uppercase;
 }}
-.fit-sublabel {{
-    font-size: 0.65rem;
-    color: {MUTED};
-    letter-spacing: 0.04em;
+.fit-card-body {{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 20px 18px;
+    gap: 24px;
 }}
-.fit-rank {{
-    text-align: right;
+.fit-card-score-wrap {{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
 }}
-.fit-rank-num {{
+.fit-card-score {{
     font-family: 'JetBrains Mono', monospace;
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: {TEXT};
+    font-size: 3.6rem;
+    font-weight: 900;
     line-height: 1;
+    letter-spacing: -0.03em;
 }}
-.fit-rank-of {{
-    font-size: 0.68rem;
+.fit-card-score-label {{
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: {MUTED};
+}}
+.fit-card-rank-wrap {{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.25);
+    min-width: 80px;
+}}
+.fit-card-rank-num {{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2rem;
+    font-weight: 900;
+    line-height: 1;
+    color: {TEXT};
+}}
+.fit-card-rank-of {{
+    font-size: 0.62rem;
+    font-weight: 600;
     color: {MUTED};
     font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.04em;
+}}
+.fit-card-rank-label {{
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: {MUTED};
+    margin-top: 2px;
+}}
+.fit-card-bar {{
+    height: 4px;
+    width: 100%;
+    border-radius: 0;
+}}
+.fit-card-bar-fill {{
+    height: 100%;
+    border-radius: 0 2px 2px 0;
+    transition: width 0.4s ease;
 }}
 
 /* Override Streamlit ProgressColumn bar color → amber */
@@ -508,7 +576,7 @@ METRIC_CONFIG = {
         "type": "target",
         "options": {"Affluent": 0, "Mixed": 50, "Disadvantaged": 100},
         "default_weight": 3,
-        "default_pref": "Mixed",
+        "default_pref": "Affluent",
         "tip": "Affluent targets <10 %, Mixed ≈50 %, Disadvantaged targets >90 %.",
     },
     "PEREL": {
@@ -517,7 +585,7 @@ METRIC_CONFIG = {
         "type": "target",
         "options": {"Few EL": 0, "Balanced": 50, "EL-Rich": 100},
         "default_weight": 3,
-        "default_pref": "Balanced",
+        "default_pref": "Few EL",
         "tip": "Few EL targets <10 %, Balanced ≈50 %, EL-Rich targets >90 % English Learner students.",
     },
     "PERSD": {
@@ -526,7 +594,7 @@ METRIC_CONFIG = {
         "type": "target",
         "options": {"Few SWD": 0, "Balanced": 50, "Inclusive": 100},
         "default_weight": 2,
-        "default_pref": "Balanced",
+        "default_pref": "Few SWD",
         "tip": "Few SWD targets <10 %, Balanced ≈50 %, Inclusive targets >90 % Students w/ Disabilities.",
     },
 }
@@ -630,6 +698,43 @@ with _hdr_sb:
 with _hdr_swap:
     st.button("⇅", on_click=handle_swap, use_container_width=True)
 
+# ─── DYNAMIC GLOW on active dropdowns (school vs district mode) ──────
+if district_mode:
+    # Glow on district dropdowns (columns 1, 3)
+    glow_css = f"""
+    <style>
+    [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(1) [data-testid="stSelectbox"] > div > div {{
+        box-shadow: 0 0 8px 2px rgba(99,102,241,0.45) !important;
+    }}
+    [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(3) [data-testid="stSelectbox"] > div > div {{
+        box-shadow: 0 0 8px 2px rgba(244,63,94,0.45) !important;
+    }}
+    /* Dim the non-active school dropdowns */
+    [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(2) [data-testid="stSelectbox"] > div > div,
+    [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(4) [data-testid="stSelectbox"] > div > div {{
+        opacity: 0.4 !important;
+    }}
+    </style>
+    """
+else:
+    # Glow on school dropdowns (columns 2, 4), dim district dropdowns
+    glow_css = f"""
+    <style>
+    [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(2) [data-testid="stSelectbox"] > div > div {{
+        box-shadow: 0 0 8px 2px rgba(99,102,241,0.45) !important;
+    }}
+    [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(4) [data-testid="stSelectbox"] > div > div {{
+        box-shadow: 0 0 8px 2px rgba(244,63,94,0.45) !important;
+    }}
+    /* Dim the non-active district dropdowns */
+    [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(1) [data-testid="stSelectbox"] > div > div,
+    [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(3) [data-testid="stSelectbox"] > div > div {{
+        opacity: 0.4 !important;
+    }}
+    </style>
+    """
+st.markdown(glow_css, unsafe_allow_html=True)
+
 # ─── SIDEBAR — RANKING PARAMETERS ───────────────────────────────────
 scoring_settings = {}
 
@@ -641,26 +746,24 @@ def _handle_reset():
             st.session_state[f"t_{_col}"] = _cfg["default_pref"]
 
 with st.sidebar:
-    # ── JS: permanently hide select_slider endpoint labels via MutationObserver ──
+    # ── JS: MutationObserver — hide endpoint labels ──
     components.html("""
     <script>
     (function() {
-        const TESTIDS = ['stTickBarMin', 'stTickBarMax', 'stTickBar'];
-        function hideAll() {
+        const TIDS = ['stTickBarMin', 'stTickBarMax', 'stTickBar'];
+        function hide() {
             const doc = window.parent.document;
             const sidebar = doc.querySelector('[data-testid="stSidebar"]');
             if (!sidebar) return;
-            TESTIDS.forEach(tid => {
+            TIDS.forEach(tid => {
                 sidebar.querySelectorAll('[data-testid="' + tid + '"]').forEach(el => {
                     el.style.setProperty('display', 'none', 'important');
-                    el.style.setProperty('visibility', 'hidden', 'important');
-                    el.style.setProperty('opacity', '0', 'important');
                 });
             });
         }
-        hideAll();
-        const observer = new MutationObserver(hideAll);
-        observer.observe(window.parent.document.body, {
+        hide();
+        const obs = new MutationObserver(hide);
+        obs.observe(window.parent.document.body, {
             childList: true, subtree: true,
             attributes: true, attributeFilter: ['style', 'class']
         });
@@ -672,7 +775,7 @@ with st.sidebar:
     st.button("↺ Reset", on_click=_handle_reset, use_container_width=False)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # ── metrics (single column, stacked) ──
+    # ── IMPORTANCE SLIDERS (all metrics) ──
     for grp in CARD_GROUPS:
         for col in grp["keys"]:
             cfg = METRIC_CONFIG[col]
@@ -681,8 +784,15 @@ with st.sidebar:
             if f"w_{col}" not in st.session_state:
                 st.session_state[f"w_{col}"] = _weight_to_label(cfg["default_weight"])
 
+            # Build label — append current target choice for target-type metrics
+            slider_label = cfg["label"]
+            if cfg["type"] == "target":
+                if f"t_{col}" not in st.session_state:
+                    st.session_state[f"t_{col}"] = cfg["default_pref"]
+                slider_label = f"{cfg['label']}  ·  {st.session_state[f't_{col}']}"
+
             imp_label = st.select_slider(
-                cfg["label"],
+                slider_label,
                 options=IMPORTANCE_LABELS,
                 key=f"w_{col}",
                 help=cfg.get("tip", ""),
@@ -690,26 +800,46 @@ with st.sidebar:
             w = IMPORTANCE_TO_NUM[imp_label]
             scoring_settings[col] = {"weight": w}
 
-            if cfg["type"] == "target":
-                opts = list(cfg["options"].keys())
-                if hasattr(st, "segmented_control"):
-                    pref = st.segmented_control(
-                        f"target_{col}",
-                        options=opts,
-                        default=cfg["default_pref"],
-                        key=f"t_{col}",
-                        label_visibility="collapsed",
-                    )
-                else:
-                    pref = st.radio(
-                        f"target_{col}",
-                        options=opts,
-                        index=opts.index(cfg["default_pref"]),
-                        key=f"t_{col}",
-                        horizontal=True,
-                    )
-                target_val = cfg["options"].get(pref, 50)
-                scoring_settings[col]["target"] = target_val
+    # ── TARGET PREFERENCES (separate section) ──
+    st.markdown("---")
+    st.markdown(
+        f'<div style="font-size:0.82rem;font-weight:800;letter-spacing:0.1em;'
+        f'text-transform:uppercase;color:{ACCENT_P};margin-bottom:0.5rem;">'
+        f'Target Preferences</div>',
+        unsafe_allow_html=True,
+    )
+    for grp in CARD_GROUPS:
+        for col in grp["keys"]:
+            cfg = METRIC_CONFIG[col]
+            if cfg["type"] != "target":
+                continue
+            opts = list(cfg["options"].keys())
+            if f"t_{col}" not in st.session_state:
+                st.session_state[f"t_{col}"] = cfg["default_pref"]
+            st.markdown(
+                f'<div style="font-size:0.78rem;font-weight:700;color:{MUTED};'
+                f'text-transform:uppercase;letter-spacing:0.06em;margin-top:0.7rem;'
+                f'margin-bottom:0.15rem;">{cfg["label"]}</div>',
+                unsafe_allow_html=True,
+            )
+            if hasattr(st, "segmented_control"):
+                pref = st.segmented_control(
+                    f"target_{col}",
+                    options=opts,
+                    default=cfg["default_pref"],
+                    key=f"t_{col}",
+                    label_visibility="collapsed",
+                )
+            else:
+                pref = st.radio(
+                    f"target_{col}",
+                    options=opts,
+                    index=opts.index(cfg["default_pref"]),
+                    key=f"t_{col}",
+                    horizontal=True,
+                )
+            target_val = cfg["options"].get(pref, 50)
+            scoring_settings[col]["target"] = target_val
 
 # ─── RESOLVE DATA ─────────────────────────────────────────────────────
 if not district_mode:
@@ -761,17 +891,41 @@ def _fit_card(label, score, rank, school_color):
     s = f"{score}" if score is not None else "—"
     r_num = f"#{rank}" if rank is not None else "—"
     r_of = f"of {total_ranked}" if rank is not None else ""
+    pct = min(score or 0, 100)  # for bar width
+
+    # Score-based quality tint for the bar fill
+    if score is not None and score >= 70:
+        quality_color = "#22c55e"  # green
+    elif score is not None and score >= 40:
+        quality_color = "#eab308"  # amber
+    else:
+        quality_color = "#ef4444"  # red
+
+    # Compute rgba glow from school_color
+    # Indigo #6366f1 → 99,102,241  |  Rose #f43f5e → 244,63,94
+    if school_color == ACCENT_A:
+        glow_rgba = "99,102,241"
+    else:
+        glow_rgba = "244,63,94"
+
     return f"""
-    <div class="fit-card" style="border-left-color:{school_color};">
-        <div>
-            <div class="fit-label">{label}</div>
-            <div class="fit-score" style="color:{school_color};">{s}</div>
-            <div class="fit-sublabel">custom fit score</div>
+    <div class="fit-card" style="border-color:rgba({glow_rgba},0.3);box-shadow:0 4px 24px rgba({glow_rgba},0.15), inset 0 1px 0 rgba({glow_rgba},0.08);">
+        <!-- Header: school name + entity badge -->
+        <div class="fit-card-header">
+            <div class="fit-card-name" style="color:{school_color};">{label}</div>
+            <div class="fit-card-badge" style="background:rgba({glow_rgba},0.12);color:{school_color};">{entity}</div>
         </div>
-        <div class="fit-rank">
-            <div class="fit-rank-num" style="color:{school_color};">{r_num}</div>
-            <div class="fit-rank-of">{r_of}</div>
-            <div class="fit-sublabel">county rank</div>
+        <!-- Body: giant score + rank box -->
+        <div class="fit-card-body">
+            <div class="fit-card-score-wrap">
+                <div class="fit-card-score" style="color:{school_color};">{s}</div>
+                <div class="fit-card-score-label">Custom Fit Score</div>
+            </div>
+            <div class="fit-card-rank-wrap">
+                <div class="fit-card-rank-num">{r_num}</div>
+                <div class="fit-card-rank-of">{r_of}</div>
+                <div class="fit-card-rank-label">County Rank</div>
+            </div>
         </div>
     </div>
     """
@@ -830,214 +984,216 @@ st.dataframe(
     height=420,
 )
 
-# ─── ROW 1 — CLASS SIZE GAUGE + PICTOGRAPH ────────────────────────────
-size_a_val = int(round(data_a["AVG_SIZE"]))
-size_b_val = int(round(data_b["AVG_SIZE"]))
+with st.expander("Detailed Visual Comparisons", expanded=False):
 
-MAX_SEATS = 40  # total desk slots in the classroom grid
+    # ─── ROW 1 — CLASS SIZE GAUGE + PICTOGRAPH ────────────────────────────
+    size_a_val = int(round(data_a["AVG_SIZE"]))
+    size_b_val = int(round(data_b["AVG_SIZE"]))
 
-def _icon(color, w_head, h_head, w_body, h_body, op="1"):
-    """CSS person icon at arbitrary size."""
-    return (
-        f'<span style="display:inline-block;text-align:center;opacity:{op};">'
-        f'<span style="display:block;width:{w_head}px;height:{h_head}px;border-radius:50%;'
-        f'background:{color};margin:0 auto;"></span>'
-        f'<span style="display:block;width:{w_body}px;height:{h_body}px;'
-        f'border-radius:{w_body//2}px {w_body//2}px 2px 2px;'
-        f'background:{color};margin:1px auto 0;"></span>'
-        f'</span>'
-    )
+    MAX_SEATS = 40  # total desk slots in the classroom grid
 
-def build_classroom(count, color, value):
-    """Classroom card: top bar (number) · classroom grid below."""
-    empty = "#252836"
+    def _icon(color, w_head, h_head, w_body, h_body, op="1"):
+        """CSS person icon at arbitrary size."""
+        return (
+            f'<span style="display:inline-block;text-align:center;opacity:{op};">'
+            f'<span style="display:block;width:{w_head}px;height:{h_head}px;border-radius:50%;'
+            f'background:{color};margin:0 auto;"></span>'
+            f'<span style="display:block;width:{w_body}px;height:{h_body}px;'
+            f'border-radius:{w_body//2}px {w_body//2}px 2px 2px;'
+            f'background:{color};margin:1px auto 0;"></span>'
+            f'</span>'
+        )
 
-    # ── TOP BAR: number left ──
-    top_bar = (
-        f'<div style="display:flex;align-items:center;'
-        f'margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid {BORDER};">'
-        f'<div style="display:flex;align-items:baseline;gap:6px;">'
-        f'<span style="font-family:\'JetBrains Mono\',monospace;font-size:1.6rem;'
-        f'font-weight:700;color:{color};line-height:1;">{value:.1f}</span>'
-        f'<span style="font-size:0.65rem;color:{MUTED};'
-        f'font-family:Inter,sans-serif;">students</span>'
-        f'</div>'
-        f'</div>'
-    )
+    def build_classroom(count, color, value):
+        """Classroom card: top bar (number) · classroom grid below."""
+        empty = "#252836"
 
-    # ── CLASSROOM: teacher + wide student grid ──
-    teacher_row = (
-        f'<div style="text-align:center;margin-bottom:6px;">'
-        f'{_icon(color, 8, 8, 12, 14)}'
-        f'<div style="width:80%;max-width:120px;height:1px;background:{BORDER};'
-        f'margin:4px auto 0;"></div>'
-        f'</div>'
-    )
+        # ── TOP BAR: number left ──
+        top_bar = (
+            f'<div style="display:flex;align-items:center;'
+            f'margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid {BORDER};">'
+            f'<div style="display:flex;align-items:baseline;gap:6px;">'
+            f'<span style="font-family:\'JetBrains Mono\',monospace;font-size:1.6rem;'
+            f'font-weight:700;color:{color};line-height:1;">{value:.1f}</span>'
+            f'<span style="font-size:0.65rem;color:{MUTED};'
+            f'font-family:Inter,sans-serif;">students</span>'
+            f'</div>'
+            f'</div>'
+        )
 
-    # 10 columns — uses full card width, only 4 rows
-    cols = 10
-    grid = ""
-    for i in range(MAX_SEATS):
-        if i % cols == 0:
-            if i: grid += "</div>"
-            grid += '<div style="display:flex;justify-content:center;gap:2px;margin:2px 0;">'
-        fill = color if i < count else empty
-        op = "1" if i < count else "0.22"
-        grid += f'<span style="flex:0 0 auto;">{_icon(fill, 5, 5, 7, 9, op)}</span>'
-    grid += "</div>"
+        # ── CLASSROOM: teacher + wide student grid ──
+        teacher_row = (
+            f'<div style="text-align:center;margin-bottom:6px;">'
+            f'{_icon(color, 8, 8, 12, 14)}'
+            f'<div style="width:80%;max-width:120px;height:1px;background:{BORDER};'
+            f'margin:4px auto 0;"></div>'
+            f'</div>'
+        )
 
-    footer = (
-        f'<div style="text-align:center;margin-top:6px;font-size:0.62rem;color:{MUTED};'
-        f'font-family:Inter,sans-serif;letter-spacing:0.06em;">'
-        f'{count} of {MAX_SEATS} seats</div>'
-    )
+        # 10 columns — uses full card width, only 4 rows
+        cols = 10
+        grid = ""
+        for i in range(MAX_SEATS):
+            if i % cols == 0:
+                if i: grid += "</div>"
+                grid += '<div style="display:flex;justify-content:center;gap:2px;margin:2px 0;">'
+            fill = color if i < count else empty
+            op = "1" if i < count else "0.22"
+            grid += f'<span style="flex:0 0 auto;">{_icon(fill, 5, 5, 7, 9, op)}</span>'
+        grid += "</div>"
 
-    return (
-        f'<div style="background:{CARD};border:1px solid {BORDER};border-radius:8px;'
-        f'padding:12px 16px 10px;">'
-        f'{top_bar}{teacher_row}{grid}{footer}'
-        f'</div>'
-    )
+        footer = (
+            f'<div style="text-align:center;margin-top:6px;font-size:0.62rem;color:{MUTED};'
+            f'font-family:Inter,sans-serif;letter-spacing:0.06em;">'
+            f'{count} of {MAX_SEATS} seats</div>'
+        )
 
-st.markdown('<div class="sec-label">Average Class Size</div>', unsafe_allow_html=True)
-c_class_a, c_class_b = st.columns([1, 1], gap="small")
+        return (
+            f'<div style="background:{CARD};border:1px solid {BORDER};border-radius:8px;'
+            f'padding:12px 16px 10px;">'
+            f'{top_bar}{teacher_row}{grid}{footer}'
+            f'</div>'
+        )
 
-with c_class_a:
-    st.markdown(build_classroom(size_a_val, ACCENT_A, data_a["AVG_SIZE"]), unsafe_allow_html=True)
+    st.markdown('<div class="sec-label">Average Class Size</div>', unsafe_allow_html=True)
+    c_class_a, c_class_b = st.columns([1, 1], gap="small")
 
-with c_class_b:
-    st.markdown(build_classroom(size_b_val, ACCENT_B, data_b["AVG_SIZE"]), unsafe_allow_html=True)
+    with c_class_a:
+        st.markdown(build_classroom(size_a_val, ACCENT_A, data_a["AVG_SIZE"]), unsafe_allow_html=True)
+
+    with c_class_b:
+        st.markdown(build_classroom(size_b_val, ACCENT_B, data_b["AVG_SIZE"]), unsafe_allow_html=True)
 
 
-# ─── ROW 2 — PROFICIENCY BARS ──────────────────────────────────────────
-st.markdown('<div class="sec-label">Performance Profile</div>', unsafe_allow_html=True)
+    # ─── ROW 2 — PROFICIENCY BARS ──────────────────────────────────────────
+    st.markdown('<div class="sec-label">Performance Profile</div>', unsafe_allow_html=True)
 
-# ── grouped bar — math & ela side-by-side ──
-subjects = ["Math Proficiency", "English Language Arts"]
-vals_a = [data_a["SMATH_Y1"], data_a["SELA_Y1"]]
-vals_b = [data_b["SMATH_Y1"], data_b["SELA_Y1"]]
+    # ── grouped bar — math & ela side-by-side ──
+    subjects = ["Math Proficiency", "English Language Arts"]
+    vals_a = [data_a["SMATH_Y1"], data_a["SELA_Y1"]]
+    vals_b = [data_b["SMATH_Y1"], data_b["SELA_Y1"]]
 
-fig_b = go.Figure()
-fig_b.add_trace(go.Bar(
-    x=subjects, y=vals_a, name=label_a,
-    marker=dict(color=ACCENT_A, cornerradius=4),
-    text=[f"{v:.1f}%" for v in vals_a], textposition="outside",
-    textfont=dict(color=ACCENT_A, size=12, family="JetBrains Mono", weight=700),
-    width=0.32,
-))
-fig_b.add_trace(go.Bar(
-    x=subjects, y=vals_b, name=label_b,
-    marker=dict(color=ACCENT_B, cornerradius=4),
-    text=[f"{v:.1f}%" for v in vals_b], textposition="outside",
-    textfont=dict(color=ACCENT_B, size=12, family="JetBrains Mono", weight=700),
-    width=0.32,
-))
-fig_b.update_layout(
-    **_PLT,
-    height=300,
-    barmode="group",
-    yaxis=dict(range=[0, max(max(vals_a), max(vals_b)) * 1.25],
-               gridcolor=BORDER, gridwidth=1, tickfont=dict(color=MUTED, size=10),
-               showgrid=True),
-    xaxis=dict(tickfont=dict(color=TEXT, size=11, family="Inter", weight=600)),
-    legend=dict(orientation="h", y=-0.18, x=0.5, xanchor="center",
-                font=dict(size=10, color=MUTED)),
-    showlegend=True,
-    bargap=0.25,
-)
-st.plotly_chart(fig_b, use_container_width=True, config={"displayModeBar": False})
-
-# ─── ROW 3 — DEMOGRAPHICS  ────────────────────────────────────────────
-st.markdown('<div class="sec-label">Demographics &amp; Enrollment</div>', unsafe_allow_html=True)
-c_eth, c_prog = st.columns([1, 1], gap="small")
-
-# ── butterfly chart — ethnicity ──
-with c_eth:
-    eth_map = {
-        "PERHI":    "Hispanic / Latino",
-        "PERWH":    "White",
-        "PERAS":    "Asian",
-        "PERAA":    "Black",
-        "PERMULTI": "Two+",
-        "PERFI":    "Filipino",
-    }
-    rows = [{"L": n, "A": data_a.get(k, 0), "B": data_b.get(k, 0)} for k, n in eth_map.items()]
-    eth = pd.DataFrame(rows).sort_values("A", ascending=True)
-
-    fig_e = go.Figure()
-    fig_e.add_trace(go.Bar(
-        y=eth["L"], x=[-v for v in eth["A"]], orientation="h",
-        marker=dict(color=ACCENT_A, cornerradius=3),
-        text=[f"{v:.1f}%" for v in eth["A"]], textposition="inside",
-        textfont=dict(color="white", size=10, family="JetBrains Mono"),
-        hovertemplate="%{y}: %{x:abs:.1f}%<extra>A</extra>",
-        name=label_a,
+    fig_b = go.Figure()
+    fig_b.add_trace(go.Bar(
+        x=subjects, y=vals_a, name=label_a,
+        marker=dict(color=ACCENT_A, cornerradius=4),
+        text=[f"{v:.1f}%" for v in vals_a], textposition="outside",
+        textfont=dict(color=ACCENT_A, size=12, family="JetBrains Mono", weight=700),
+        width=0.32,
     ))
-    fig_e.add_trace(go.Bar(
-        y=eth["L"], x=eth["B"].tolist(), orientation="h",
-        marker=dict(color=ACCENT_B, cornerradius=3),
-        text=[f"{v:.1f}%" for v in eth["B"]], textposition="inside",
-        textfont=dict(color="white", size=10, family="JetBrains Mono"),
-        hovertemplate="%{y}: %{x:.1f}%<extra>B</extra>",
-        name=label_b,
+    fig_b.add_trace(go.Bar(
+        x=subjects, y=vals_b, name=label_b,
+        marker=dict(color=ACCENT_B, cornerradius=4),
+        text=[f"{v:.1f}%" for v in vals_b], textposition="outside",
+        textfont=dict(color=ACCENT_B, size=12, family="JetBrains Mono", weight=700),
+        width=0.32,
     ))
-    fig_e.update_layout(
-        **_PLT,
-        height=300,
-        barmode="relative",
-        xaxis=dict(tickvals=[-80, -40, 0, 40, 80],
-                   ticktext=["80%", "40%", "0", "40%", "80%"],
-                   gridcolor=BORDER, zeroline=True, zerolinecolor=BORDER, zerolinewidth=1,
-                   tickfont=dict(color=MUTED, size=9)),
-        yaxis=dict(tickfont=dict(color=TEXT, size=10, family="Inter", weight=500)),
-        legend=dict(orientation="h", y=-0.18, x=0.5, xanchor="center",
-                    font=dict(size=10, color=MUTED)),
-        showlegend=True,
-        bargap=0.2,
-    )
-    st.plotly_chart(fig_e, use_container_width=True, config={"displayModeBar": False})
-
-# ── horizontal grouped bar — program enrollment ──
-with c_prog:
-    prog_map = {
-        "PEREL": "English Learners",
-        "PERDI": "Socio-Econ Disadv.",
-        "PERSD": "Disabilities",
-    }
-    prog_rows = [{"L": n, "A": data_a.get(k, 0), "B": data_b.get(k, 0)} for k, n in prog_map.items()]
-    # Fixed order: English Learners, Socio-Econ Disadv., Disabilities (reversed for horizontal bar)
-    prog = pd.DataFrame(prog_rows)
-    prog = prog.iloc[::-1].reset_index(drop=True)  # reverse so bottom-up reads top-down
-
-    fig_p = go.Figure()
-    fig_p.add_trace(go.Bar(
-        y=prog["L"], x=prog["A"].tolist(), orientation="h",
-        marker=dict(color=ACCENT_A, cornerradius=3),
-        text=[f"{v:.1f}%" for v in prog["A"]], textposition="outside",
-        textfont=dict(color=ACCENT_A, size=11, family="JetBrains Mono", weight=600),
-        name=label_a, width=0.35,
-    ))
-    fig_p.add_trace(go.Bar(
-        y=prog["L"], x=prog["B"].tolist(), orientation="h",
-        marker=dict(color=ACCENT_B, cornerradius=3),
-        text=[f"{v:.1f}%" for v in prog["B"]], textposition="outside",
-        textfont=dict(color=ACCENT_B, size=11, family="JetBrains Mono", weight=600),
-        name=label_b, width=0.35,
-    ))
-    fig_p.update_layout(
+    fig_b.update_layout(
         **_PLT,
         height=300,
         barmode="group",
-        xaxis=dict(gridcolor=BORDER, gridwidth=1,
-                   tickfont=dict(color=MUTED, size=9),
-                   range=[0, max(max(prog["A"]), max(prog["B"])) * 1.35]),
-        yaxis=dict(tickfont=dict(color=TEXT, size=10, family="Inter", weight=500)),
-        legend=dict(orientation="h", y=-0.22, x=0.5, xanchor="center",
+        yaxis=dict(range=[0, max(max(vals_a), max(vals_b)) * 1.25],
+                   gridcolor=BORDER, gridwidth=1, tickfont=dict(color=MUTED, size=10),
+                   showgrid=True),
+        xaxis=dict(tickfont=dict(color=TEXT, size=11, family="Inter", weight=600)),
+        legend=dict(orientation="h", y=-0.18, x=0.5, xanchor="center",
                     font=dict(size=10, color=MUTED)),
         showlegend=True,
         bargap=0.25,
     )
-    st.plotly_chart(fig_p, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig_b, use_container_width=True, config={"displayModeBar": False})
+
+    # ─── ROW 3 — DEMOGRAPHICS  ────────────────────────────────────────────
+    st.markdown('<div class="sec-label">Demographics &amp; Enrollment</div>', unsafe_allow_html=True)
+    c_eth, c_prog = st.columns([1, 1], gap="small")
+
+    # ── butterfly chart — ethnicity ──
+    with c_eth:
+        eth_map = {
+            "PERHI":    "Hispanic / Latino",
+            "PERWH":    "White",
+            "PERAS":    "Asian",
+            "PERAA":    "Black",
+            "PERMULTI": "Two+",
+            "PERFI":    "Filipino",
+        }
+        rows = [{"L": n, "A": data_a.get(k, 0), "B": data_b.get(k, 0)} for k, n in eth_map.items()]
+        eth = pd.DataFrame(rows).sort_values("A", ascending=True)
+
+        fig_e = go.Figure()
+        fig_e.add_trace(go.Bar(
+            y=eth["L"], x=[-v for v in eth["A"]], orientation="h",
+            marker=dict(color=ACCENT_A, cornerradius=3),
+            text=[f"{v:.1f}%" for v in eth["A"]], textposition="inside",
+            textfont=dict(color="white", size=10, family="JetBrains Mono"),
+            hovertemplate="%{y}: %{x:abs:.1f}%<extra>A</extra>",
+            name=label_a,
+        ))
+        fig_e.add_trace(go.Bar(
+            y=eth["L"], x=eth["B"].tolist(), orientation="h",
+            marker=dict(color=ACCENT_B, cornerradius=3),
+            text=[f"{v:.1f}%" for v in eth["B"]], textposition="inside",
+            textfont=dict(color="white", size=10, family="JetBrains Mono"),
+            hovertemplate="%{y}: %{x:.1f}%<extra>B</extra>",
+            name=label_b,
+        ))
+        fig_e.update_layout(
+            **_PLT,
+            height=300,
+            barmode="relative",
+            xaxis=dict(tickvals=[-80, -40, 0, 40, 80],
+                       ticktext=["80%", "40%", "0", "40%", "80%"],
+                       gridcolor=BORDER, zeroline=True, zerolinecolor=BORDER, zerolinewidth=1,
+                       tickfont=dict(color=MUTED, size=9)),
+            yaxis=dict(tickfont=dict(color=TEXT, size=10, family="Inter", weight=500)),
+            legend=dict(orientation="h", y=-0.18, x=0.5, xanchor="center",
+                        font=dict(size=10, color=MUTED)),
+            showlegend=True,
+            bargap=0.2,
+        )
+        st.plotly_chart(fig_e, use_container_width=True, config={"displayModeBar": False})
+
+    # ── horizontal grouped bar — program enrollment ──
+    with c_prog:
+        prog_map = {
+            "PEREL": "English Learners",
+            "PERDI": "Socio-Econ Disadv.",
+            "PERSD": "Disabilities",
+        }
+        prog_rows = [{"L": n, "A": data_a.get(k, 0), "B": data_b.get(k, 0)} for k, n in prog_map.items()]
+        # Fixed order: English Learners, Socio-Econ Disadv., Disabilities (reversed for horizontal bar)
+        prog = pd.DataFrame(prog_rows)
+        prog = prog.iloc[::-1].reset_index(drop=True)  # reverse so bottom-up reads top-down
+
+        fig_p = go.Figure()
+        fig_p.add_trace(go.Bar(
+            y=prog["L"], x=prog["A"].tolist(), orientation="h",
+            marker=dict(color=ACCENT_A, cornerradius=3),
+            text=[f"{v:.1f}%" for v in prog["A"]], textposition="outside",
+            textfont=dict(color=ACCENT_A, size=11, family="JetBrains Mono", weight=600),
+            name=label_a, width=0.35,
+        ))
+        fig_p.add_trace(go.Bar(
+            y=prog["L"], x=prog["B"].tolist(), orientation="h",
+            marker=dict(color=ACCENT_B, cornerradius=3),
+            text=[f"{v:.1f}%" for v in prog["B"]], textposition="outside",
+            textfont=dict(color=ACCENT_B, size=11, family="JetBrains Mono", weight=600),
+            name=label_b, width=0.35,
+        ))
+        fig_p.update_layout(
+            **_PLT,
+            height=300,
+            barmode="group",
+            xaxis=dict(gridcolor=BORDER, gridwidth=1,
+                       tickfont=dict(color=MUTED, size=9),
+                       range=[0, max(max(prog["A"]), max(prog["B"])) * 1.35]),
+            yaxis=dict(tickfont=dict(color=TEXT, size=10, family="Inter", weight=500)),
+            legend=dict(orientation="h", y=-0.22, x=0.5, xanchor="center",
+                        font=dict(size=10, color=MUTED)),
+            showlegend=True,
+            bargap=0.25,
+        )
+        st.plotly_chart(fig_p, use_container_width=True, config={"displayModeBar": False})
 
 # ─── FOOTER ────────────────────────────────────────────────────────────
 st.markdown(
