@@ -57,7 +57,7 @@ header[data-testid="stHeader"] button {{
 section[data-testid="stSidebar"] {{
     background: {SURFACE} !important;
     border-right: 1px solid {BORDER} !important;
-    width: 400px !important;
+    width: 480px !important;
 }}
 section[data-testid="stSidebar"] > div:first-child {{
     padding: 0.8rem 0.8rem 1rem !important;
@@ -553,6 +553,49 @@ section[data-testid="stSidebar"] [data-testid="stTickBar"] {{
     flex-wrap: wrap;
 }}
 
+/* ── target preference inline text-buttons ── */
+section[data-testid="stSidebar"] .stMarkdown p.tgt-lbl {{
+    color: {MUTED} !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.4 !important;
+}}
+/* Make target buttons look like plain text — match category header font */
+section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] [data-testid="stBaseButton-secondary"],
+section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] [data-testid="stBaseButton-primary"] {{
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 3px !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    color: {MUTED} !important;
+    opacity: 0.45;
+    min-height: 0 !important;
+    height: auto !important;
+    line-height: 1.3 !important;
+    white-space: nowrap !important;
+    transition: opacity 0.15s, color 0.15s !important;
+}}
+section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] [data-testid="stBaseButton-secondary"]:hover {{
+    opacity: 0.8;
+    color: {TEXT} !important;
+}}
+section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] [data-testid="stBaseButton-primary"] {{
+    color: {ACCENT_P} !important;
+    opacity: 1;
+    text-decoration: underline !important;
+    text-underline-offset: 3px !important;
+}}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -814,11 +857,12 @@ st.markdown(glow_css, unsafe_allow_html=True)
 scoring_settings = {}
 
 def _handle_reset():
-    """Reset all weights to Medium Importance and targets to Mixed."""
+    """Reset all weights to Medium Importance and targets to first directional option."""
     for _col, _cfg in METRIC_CONFIG.items():
         st.session_state[f"w_{_col}"] = "Medium Importance"
         if _cfg["type"] == "target":
-            st.session_state[f"t_{_col}"] = _cfg["default_pref"]
+            _opts = list(_cfg["options"].keys())
+            st.session_state[f"t_{_col}"] = _opts[0]
 
 with st.sidebar:
     # ── JS: MutationObserver — hide endpoint labels ──
@@ -859,56 +903,56 @@ with st.sidebar:
             if f"w_{col}" not in st.session_state:
                 st.session_state[f"w_{col}"] = _weight_to_label(cfg["default_weight"])
 
-            # Build label — append current target choice for target-type metrics
-            slider_label = cfg["label"]
+            # For target metrics, show inline 2-choice text on same line as label
             if cfg["type"] == "target":
+                opts = list(cfg["options"].keys())
+                if len(opts) > 2:
+                    opts = [opts[0], opts[-1]]
                 if f"t_{col}" not in st.session_state:
-                    st.session_state[f"t_{col}"] = cfg["default_pref"]
-                slider_label = f"{cfg['label']}  ·  {st.session_state[f't_{col}']}"
+                    st.session_state[f"t_{col}"] = opts[0]
+                selected = st.session_state[f"t_{col}"]
 
-            imp_label = st.select_slider(
-                slider_label,
-                options=IMPORTANCE_LABELS,
-                key=f"w_{col}",
-                help=cfg.get("tip", ""),
-            )
-            w = IMPORTANCE_TO_NUM[imp_label]
-            scoring_settings[col] = {"weight": w}
+                # Row: label left, two text-buttons right-justified
+                _lbl_c, _b1_c, _b2_c = st.columns([5, 1.4, 1.4], vertical_alignment="center")
+                with _lbl_c:
+                    st.markdown(
+                        f'<p class="tgt-lbl">{cfg["label"]}</p>',
+                        unsafe_allow_html=True,
+                    )
+                with _b1_c:
+                    st.button(
+                        opts[0], key=f"targetbtn_{col}_0",
+                        on_click=lambda c=col, v=opts[0]: st.session_state.update({f"t_{c}": v}),
+                        use_container_width=True,
+                        type="primary" if selected == opts[0] else "secondary",
+                    )
+                with _b2_c:
+                    st.button(
+                        opts[1], key=f"targetbtn_{col}_1",
+                        on_click=lambda c=col, v=opts[1]: st.session_state.update({f"t_{c}": v}),
+                        use_container_width=True,
+                        type="primary" if selected == opts[1] else "secondary",
+                    )
 
-    # ── TARGET PREFERENCES (separate section) ──
-    st.markdown("---")
-    for grp in CARD_GROUPS:
-        for col in grp["keys"]:
-            cfg = METRIC_CONFIG[col]
-            if cfg["type"] != "target":
-                continue
-            opts = list(cfg["options"].keys())
-            if f"t_{col}" not in st.session_state:
-                st.session_state[f"t_{col}"] = cfg["default_pref"]
-            st.markdown(
-                f'<div style="font-size:0.78rem;font-weight:700;color:{MUTED};'
-                f'text-transform:uppercase;letter-spacing:0.06em;margin-top:0.7rem;'
-                f'margin-bottom:0.15rem;">{cfg["label"]}</div>',
-                unsafe_allow_html=True,
-            )
-            if hasattr(st, "segmented_control"):
-                pref = st.segmented_control(
-                    f"target_{col}",
-                    options=opts,
-                    default=cfg["default_pref"],
-                    key=f"t_{col}",
+                target_val = cfg["options"].get(selected, 50)
+                imp_label = st.select_slider(
+                    cfg["label"],
+                    options=IMPORTANCE_LABELS,
+                    key=f"w_{col}",
+                    help=cfg.get("tip", ""),
                     label_visibility="collapsed",
                 )
+                w = IMPORTANCE_TO_NUM[imp_label]
+                scoring_settings[col] = {"weight": w, "target": target_val}
             else:
-                pref = st.radio(
-                    f"target_{col}",
-                    options=opts,
-                    index=opts.index(cfg["default_pref"]),
-                    key=f"t_{col}",
-                    horizontal=True,
+                imp_label = st.select_slider(
+                    cfg["label"],
+                    options=IMPORTANCE_LABELS,
+                    key=f"w_{col}",
+                    help=cfg.get("tip", ""),
                 )
-            target_val = cfg["options"].get(pref, 50)
-            scoring_settings[col]["target"] = target_val
+                w = IMPORTANCE_TO_NUM[imp_label]
+                scoring_settings[col] = {"weight": w}
 
 # ─── RESOLVE DATA ─────────────────────────────────────────────────────
 if not district_mode:
