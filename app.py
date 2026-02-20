@@ -20,7 +20,7 @@ TEXT     = "#eaecf0"
 MUTED    = "#bebfc5"
 ACCENT_A = "#4d67cd"   # indigo  — School A
 ACCENT_B = "#f4556f"   # rose    — School B
-ACCENT_P = "#e2ed3f"   # amber   — Ranking parameters
+ACCENT_P = "#00d4ff"   # cyan    — Ranking parameters
 
 # ─── GLOBAL STYLES ─────────────────────────────────────────────────────
 st.markdown(f"""
@@ -228,61 +228,29 @@ h1, h2, h3 {{ margin-top: 0 !important; }}
 /* ── plotly modebar hide ── */
 .modebar {{ display: none !important; }}
 
-/* ── Dropdown borders: indigo for A (col 1), rose for B (col 2) ── */
-/* Layout: A-stack(1) B-stack(2) buttons(3) county(4) */
-[data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(1) [data-testid="stSelectbox"] > div > div {{
-    border: 2px solid {ACCENT_A} !important;
-    border-radius: 8px !important;
+/* ── Score circle column: strip stMarkdown margin so circle aligns with dropdown ── */
+[data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"] [data-testid="stMarkdownContainer"] {{
+    display: flex !important;
+    align-items: center !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
 }}
-[data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(2) [data-testid="stSelectbox"] > div > div {{
-    border: 2px solid {ACCENT_B} !important;
-    border-radius: 8px !important;
+[data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"] [data-testid="element-container"] {{
+    margin-bottom: 0 !important;
 }}
 
-/* ── Compare mode buttons — vertical alignment with dropdown stacks ── */
-[data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(3) {{
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-}}
-/* Neutral compare buttons — no accent color */
-[data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(3) button {{
-    background: transparent !important;
-    border: 1px solid {BORDER} !important;
-    color: {MUTED} !important;
-    font-size: 0.72rem !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.06em !important;
-}}
-[data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="stColumn"]:nth-child(3) button[kind="primary"] {{
-    background: rgba(255,255,255,0.06) !important;
-    border: 1px solid {TEXT} !important;
+/* ── Main content selectbox: large bold selected value ── */
+[data-testid="stMainBlockContainer"] [data-testid="stSelectbox"] div[data-baseweb="select"] span {{
+    font-size: 1.1rem !important;
+    font-weight: 800 !important;
     color: {TEXT} !important;
+    letter-spacing: -0.01em !important;
 }}
-.cmp-btn {{
-    flex: 1;
-    padding: 6px 10px;
-    border-radius: 8px;
-    font-size: 0.7rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    text-align: center;
-    cursor: pointer;
-    border: 2px solid {BORDER};
-    color: {MUTED};
-    background: transparent;
-    transition: all 0.15s ease;
-}}
-.cmp-btn.active {{
-    background: rgba(196,232,12,0.10);
-    border-color: {ACCENT_P};
-    color: {ACCENT_P};
-    box-shadow: 0 0 10px rgba(196,232,12,0.25);
-}}
-.cmp-btn:hover:not(.active) {{
-    border-color: {MUTED};
-    color: {TEXT};
+[data-testid="stMainBlockContainer"] [data-testid="stSelectbox"] div[data-baseweb="select"] > div > div > div:first-child {{
+    font-size: 1.1rem !important;
+    font-weight: 800 !important;
+    color: {TEXT} !important;
+    letter-spacing: -0.01em !important;
 }}
 
 /* ──────────────────────────────────────────────────────  */
@@ -397,6 +365,21 @@ section[data-testid="stSidebar"] [data-testid="stTickBar"] {{
     letter-spacing: 0.06em !important;
 }}
 .reset-btn button:hover {{
+    border-color: {ACCENT_P} !important;
+    color: {ACCENT_P} !important;
+}}
+
+/* ── Add selection button ── */
+.add-btn button {{
+    background: transparent !important;
+    border: 1px dashed {BORDER} !important;
+    color: {MUTED} !important;
+    font-size: 0.72rem !important;
+    padding: 0.35rem 1rem !important;
+    border-radius: 8px !important;
+    letter-spacing: 0.06em !important;
+}}
+.add-btn button:hover {{
     border-color: {ACCENT_P} !important;
     color: {ACCENT_P} !important;
 }}
@@ -727,102 +710,68 @@ def calculate_custom_scores(df, settings):
     return scored.sort_values("Custom Fit Score", ascending=False)
 
 
-# ─── SESSION DEFAULTS & SWAP ──────────────────────────────────────────
-if "da_w" not in st.session_state:
-    st.session_state["da_w"] = "Encinitas Union Elementary"
-    st.session_state["sa_w"] = "El Camino Creek Elementary"
-    st.session_state["db_w"] = "Del Mar Union Elementary"
-    st.session_state["sb_w"] = "Sage Canyon"
 
-def handle_swap():
-    da, sa = st.session_state.da_w, st.session_state.sa_w
-    db, sb = st.session_state.db_w, st.session_state.sb_w
-    st.session_state.da_w, st.session_state.db_w = db, da
-    st.session_state.sa_w, st.session_state.sb_w = sb, sa
+# ─── SESSION STATE ─────────────────────────────────────────────────────
+if "sel_ids" not in st.session_state:
+    st.session_state["sel_ids"] = [0, 1]
+    st.session_state["sel_next_id"] = 2
+    st.session_state["dist_0"] = "Encinitas Union Elementary"
+    st.session_state["sch_0"]  = "El Camino Creek Elementary"
+    st.session_state["dist_1"] = "Del Mar Union Elementary"
+    st.session_state["sch_1"]  = "Sage Canyon"
 
-# ─── TOP BAR — COUNTY + SCHOOL SELECTORS ──────────────────────────────
-all_counties = sorted(df_master["County"].unique())
-
-# ---------- district_mode via session state (replaces toggle) ----------
 if "district_mode" not in st.session_state:
     st.session_state["district_mode"] = True
 
+
 def _set_school_mode():
     st.session_state["district_mode"] = False
+
+
 def _set_district_mode():
     st.session_state["district_mode"] = True
 
-district_mode = st.session_state["district_mode"]
 
-# ---------- layout: A-stack | B-stack | buttons | county --------
-_col_a, _col_b, _col_btns, _col_county = st.columns(
-    [1.2, 1.2, 1.0, 0.7], gap="small", vertical_alignment="bottom"
+def _add_selection():
+    nid = st.session_state["sel_next_id"]
+    st.session_state["sel_ids"].append(nid)
+    st.session_state["sel_next_id"] = nid + 1
+
+
+def _remove_selection(sid):
+    if len(st.session_state["sel_ids"]) > 1:
+        st.session_state["sel_ids"].remove(sid)
+
+
+district_mode = st.session_state["district_mode"]
+all_counties = sorted(df_master["County"].unique())
+
+# ─── TOP BAR — MODE BUTTONS + COUNTY ──────────────────────────────────
+_col_mode, _col_spacer, _col_county = st.columns(
+    [1.2, 3.0, 0.8], gap="small", vertical_alignment="bottom"
 )
+
+with _col_mode:
+    _m1, _m2 = st.columns(2)
+    with _m1:
+        st.button("Districts", on_click=_set_district_mode, use_container_width=True,
+                  type="primary" if district_mode else "secondary", key="mode_dist")
+    with _m2:
+        st.button("Schools", on_click=_set_school_mode, use_container_width=True,
+                  type="primary" if not district_mode else "secondary", key="mode_sch")
 
 with _col_county:
     sel_county = st.selectbox("County", all_counties,
                               index=all_counties.index("San Diego") if "San Diego" in all_counties else 0,
-                              label_visibility="collapsed")
+                              label_visibility="collapsed",
+                              key="county_sel")
 
 county_df = df_master[df_master["County"] == sel_county]
 districts = sorted(county_df["District"].unique())
 
-with _col_a:
-    da = st.selectbox("District A", districts, key="da_w", label_visibility="collapsed")
-    sa_list = sorted(county_df[county_df["District"] == da]["School"].unique())
-    sa = st.selectbox("School A", sa_list, key="sa_w", label_visibility="collapsed")
-
-with _col_b:
-    db = st.selectbox("District B", districts, key="db_w", label_visibility="collapsed")
-    sb_list = sorted(county_df[county_df["District"] == db]["School"].unique())
-    sb = st.selectbox("School B", sb_list, key="sb_w", label_visibility="collapsed")
-
-with _col_btns:
-    st.button("Compare Districts", on_click=_set_district_mode, use_container_width=True,
-              type="primary" if district_mode else "secondary")
-    st.button("Compare Schools", on_click=_set_school_mode, use_container_width=True,
-              type="primary" if not district_mode else "secondary")
-
-# ─── DYNAMIC GLOW on active dropdowns (school vs district mode) ──────
-_first_block = '[data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"]:first-of-type'
-if district_mode:
-    # Glow on district dropdowns (1st widget in col 1 & 2), dim school (2nd)
-    glow_css = f"""
-    <style>
-    {_first_block} > [data-testid="stColumn"]:nth-child(1) > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) [data-testid="stSelectbox"] > div > div {{
-        box-shadow: 0 0 8px 2px rgba(99,102,241,0.45) !important;
-    }}
-    {_first_block} > [data-testid="stColumn"]:nth-child(2) > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) [data-testid="stSelectbox"] > div > div {{
-        box-shadow: 0 0 8px 2px rgba(244,63,94,0.45) !important;
-    }}
-    {_first_block} > [data-testid="stColumn"]:nth-child(1) > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(2) [data-testid="stSelectbox"] > div > div,
-    {_first_block} > [data-testid="stColumn"]:nth-child(2) > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(2) [data-testid="stSelectbox"] > div > div {{
-        opacity: 0.4 !important;
-        box-shadow: none !important;
-    }}
-    </style>
-    """
-else:
-    # Glow on school dropdowns (2nd widget in col 1 & 2), dim district (1st)
-    glow_css = f"""
-    <style>
-    {_first_block} > [data-testid="stColumn"]:nth-child(1) > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(2) [data-testid="stSelectbox"] > div > div {{
-        box-shadow: 0 0 8px 2px rgba(99,102,241,0.45) !important;
-    }}
-    {_first_block} > [data-testid="stColumn"]:nth-child(2) > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(2) [data-testid="stSelectbox"] > div > div {{
-        box-shadow: 0 0 8px 2px rgba(244,63,94,0.45) !important;
-    }}
-    {_first_block} > [data-testid="stColumn"]:nth-child(1) > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) [data-testid="stSelectbox"] > div > div,
-    {_first_block} > [data-testid="stColumn"]:nth-child(2) > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) > div > [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) [data-testid="stSelectbox"] > div > div {{
-        opacity: 0.4 !important;
-        box-shadow: none !important;
-    }}
-    </style>
-    """
-st.markdown(glow_css, unsafe_allow_html=True)
-
 # ─── SIDEBAR — RANKING PARAMETERS ───────────────────────────────────
 scoring_settings = {}
+
 
 def _handle_reset():
     """Reset all weights to default and targets to first directional option."""
@@ -832,22 +781,19 @@ def _handle_reset():
             _opts = list(_cfg["options"].keys())
             st.session_state[f"t_{_col}"] = _opts[0]
 
+
 with st.sidebar:
-    # ── reset button only (no title) ──
     st.markdown('<div class="reset-btn">', unsafe_allow_html=True)
     st.button("↺ Reset", on_click=_handle_reset, use_container_width=False)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # ── IMPORTANCE SLIDERS (all metrics) ──
     for grp in CARD_GROUPS:
         for col in grp["keys"]:
             cfg = METRIC_CONFIG[col]
 
-            # Seed session state with default if not already set
             if f"w_{col}" not in st.session_state:
                 st.session_state[f"w_{col}"] = cfg["default_weight"]
 
-            # For target metrics, show inline 2-choice text on same line as label
             if cfg["type"] == "target":
                 opts = list(cfg["options"].keys())
                 if len(opts) > 2:
@@ -856,7 +802,6 @@ with st.sidebar:
                     st.session_state[f"t_{col}"] = opts[0]
                 selected = st.session_state[f"t_{col}"]
 
-                # Row: label left, two text-buttons right-justified
                 _lbl_c, _b1_c, _b2_c = st.columns([5, 1.4, 1.4], vertical_alignment="center")
                 with _lbl_c:
                     st.markdown(
@@ -896,137 +841,134 @@ with st.sidebar:
                 )
                 scoring_settings[col] = {"weight": w}
 
-# ─── RESOLVE DATA ─────────────────────────────────────────────────────
-if not district_mode:
-    data_a = county_df[county_df["School"] == sa].iloc[0]
-    data_b = county_df[county_df["School"] == sb].iloc[0]
-    label_a, label_b = sa, sb
-    entity = "School"
-else:
-    data_a = county_df[county_df["District"] == da].mean(numeric_only=True)
-    data_b = county_df[county_df["District"] == db].mean(numeric_only=True)
-    label_a, label_b = da, db
-    entity = "District"
-
-# ─── CUSTOM FIT SCORE RANKINGS (top section) ───────────────────────────
-
-# Score every school in the county
+# ─── SCORING ──────────────────────────────────────────────────────────
 scored_county = calculate_custom_scores(county_df, scoring_settings)
 scored_county["_rank"] = scored_county["Custom Fit Score"].rank(
     ascending=False, method="min").astype(int)
 total_ranked = len(scored_county)
 
-def _score_and_rank(label, col="School"):
-    row = scored_county[scored_county[col] == label]
-    if len(row):
-        return row["Custom Fit Score"].values[0], int(row["_rank"].values[0])
+# Build immutable lookup dicts so selection cards can't mutate scores
+# Use (District, School) composite key — some school names exist in multiple districts
+_school_scores = {}
+for _, _r in scored_county.iterrows():
+    _school_scores[(_r["District"], _r["School"])] = (_r["Custom Fit Score"], _r["_rank"])
+
+if district_mode:
+    _num_cols = ["Custom Fit Score", "SMATH_Y1", "SELA_Y1", "AVG_SIZE", "PERDI", "PEREL", "PERSD"]
+    _num_cols = [c for c in _num_cols if c in scored_county.columns]
+    _dist_agg = (
+        scored_county.groupby("District")[_num_cols]
+        .mean().round(1).reset_index()
+        .sort_values("Custom Fit Score", ascending=False)
+    )
+    _dist_agg["_rank"] = _dist_agg["Custom Fit Score"].rank(
+        ascending=False, method="min").astype(int)
+    total_ranked = len(_dist_agg)
+    _dist_scores = dict(zip(_dist_agg["District"],
+                            zip(_dist_agg["Custom Fit Score"],
+                                _dist_agg["_rank"])))
+
+
+def _get_score_rank(name, district=None):
+    """Get score and rank for a school or district from pre-built lookup."""
+    if district_mode:
+        sr = _dist_scores.get(name)
+    else:
+        sr = _school_scores.get((district, name))
+    if sr:
+        return sr[0], int(sr[1])
     return None, None
 
-if not district_mode:
-    score_a, rank_a = _score_and_rank(label_a, "School")
-    score_b, rank_b = _score_and_rank(label_b, "School")
-else:
-    # Build district-level aggregation for proper ranking
-    _dist_scores = (scored_county.groupby("District")["Custom Fit Score"]
-                    .mean().round(1).reset_index()
-                    .sort_values("Custom Fit Score", ascending=False))
-    _dist_scores["_rank"] = _dist_scores["Custom Fit Score"].rank(
-        ascending=False, method="min").astype(int)
-    total_ranked = len(_dist_scores)
-    _row_a = _dist_scores[_dist_scores["District"] == label_a]
-    _row_b = _dist_scores[_dist_scores["District"] == label_b]
-    score_a = _row_a["Custom Fit Score"].values[0] if len(_row_a) else None
-    rank_a  = int(_row_a["_rank"].values[0]) if len(_row_a) else None
-    score_b = _row_b["Custom Fit Score"].values[0] if len(_row_b) else None
-    rank_b  = int(_row_b["_rank"].values[0]) if len(_row_b) else None
 
-def _fit_card(label, score, rank, school_color):
-    s = f"{score:.1f}" if score is not None else "—"
-    r_num = f"#{rank}" if rank is not None else "—"
-    r_of = f"of {total_ranked}" if rank is not None else ""
+def _score_hue(score):
+    """HSL hue: red(3) -> yellow(6) -> green(9)."""
+    if score is None:
+        return 0
+    clamped = min(max(score, 3.0), 9.0)
+    pct = (clamped - 3.0) / 6.0
+    if pct <= 0.5:
+        return int(pct * 2 * 60)
+    return int(60 + (pct - 0.5) * 2 * 70)
 
-    # Score-based solid circle: green(≥9) → yellow(6) → red(≤3)
-    # Number is colored as card BG so it looks "cut out" of the circle
+
+def _mini_score_html(score, rank):
+    """Compact score circle + rank text for selection cards."""
     if score is not None:
-        clamped = min(max(score, 3.0), 9.0)
-        pct = (clamped - 3.0) / 6.0  # 0—1 over the 3–9 range
-        if pct <= 0.5:
-            hue = int(pct * 2 * 60)        # 0→60
-        else:
-            hue = int(60 + (pct - 0.5) * 2 * 70)  # 60→130
-        ring_color = f"hsl({hue}, 80%, 50%)"
-        ring_bg = ring_color  # solid fill
+        hue = _score_hue(score)
+        bg = f"hsl({hue}, 80%, 50%)"
+        s_text = f"{score:.1f}"
     else:
-        ring_bg = BORDER
-        ring_color = MUTED
-
-    # Compute rgba glow from school_color
-    if school_color == ACCENT_A:
-        glow_rgba = "99,102,241"
-    else:
-        glow_rgba = "244,63,94"
-
+        bg = BORDER
+        s_text = "—"
+    r_num = f"#{rank}" if rank else ""
+    r_ctx = f"of {total_ranked} in {sel_county} County" if rank else ""
     return f"""
-    <div class="fit-card" style="border-color:rgba({glow_rgba},0.3);box-shadow:0 4px 24px rgba({glow_rgba},0.15), inset 0 1px 0 rgba({glow_rgba},0.08);">
-        <!-- Header: school name + entity badge -->
-        <div class="fit-card-header">
-            <div class="fit-card-name" style="color:{school_color};">{label}</div>
-            <div class="fit-card-badge" style="background:rgba({glow_rgba},0.12);color:{school_color};">{entity}</div>
+    <div style="display:flex;align-items:center;gap:14px;">
+        <div style="width:48px;height:48px;border-radius:50%;background:{bg};
+            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <span style="font-family:'Inter',sans-serif;font-size:1.1rem;font-weight:900;
+                color:{CARD};letter-spacing:-0.02em;">{s_text}</span>
         </div>
-        <!-- Body: score ring + rank box -->
-        <div class="fit-card-body">
-            <div class="fit-card-score-wrap">
-                <div class="fit-card-ring" style="background:{ring_bg};">
-                    <div class="fit-card-score" style="color:{CARD};">{s}</div>
-                </div>
-                <div class="fit-card-score-label">Custom Fit Score</div>
-            </div>
-            <div class="fit-card-rank-wrap">
-                <div class="fit-card-rank-num">{r_num}</div>
-                <div class="fit-card-rank-of">{r_of}</div>
-                <div class="fit-card-rank-label">County Rank</div>
-            </div>
+        <div style="display:flex;align-items:baseline;gap:6px;">
+            <span style="font-family:'Inter',sans-serif;font-size:1.6rem;font-weight:900;
+                color:{TEXT};letter-spacing:-0.03em;line-height:1;">{r_num}</span>
+            <span style="font-family:'Inter',sans-serif;font-size:1.0rem;font-weight:500;
+                color:{MUTED};white-space:nowrap;">{r_ctx}</span>
         </div>
     </div>
     """
 
-cf_col_a, cf_col_b, cf_pad1, cf_pad2 = st.columns([1.2, 1.2, 1.0, 0.7], gap="small")
-with cf_col_a:
-    st.markdown(_fit_card(label_a, score_a, rank_a, ACCENT_A), unsafe_allow_html=True)
-with cf_col_b:
-    st.markdown(_fit_card(label_b, score_b, rank_b, ACCENT_B), unsafe_allow_html=True)
+
+# ─── SELECTION CARDS ──────────────────────────────────────────────────
+selected_labels = []
+
+for sid in st.session_state["sel_ids"]:
+    # Always render both dropdowns so session state stays in sync across modes
+    _c_dist, _c_sch, _c_score, _c_rm = st.columns(
+        [1.2, 1.2, 3, 0.3], gap="small", vertical_alignment="center"
+    )
+    with _c_dist:
+        d = st.selectbox("District", districts, key=f"dist_{sid}",
+                         label_visibility="collapsed")
+    sch_list = sorted(county_df[county_df["District"] == d]["School"].unique())
+    with _c_sch:
+        s = st.selectbox("School", sch_list, key=f"sch_{sid}",
+                         label_visibility="collapsed",
+                         disabled=district_mode)
+    if district_mode:
+        score, rank = _get_score_rank(d)
+        selected_labels.append(d)
+    else:
+        score, rank = _get_score_rank(s, district=d)
+        selected_labels.append((d, s))
+    with _c_score:
+        st.markdown(_mini_score_html(score, rank), unsafe_allow_html=True)
+    with _c_rm:
+        if len(st.session_state["sel_ids"]) > 1:
+            st.button("✕", key=f"rm_{sid}",
+                      on_click=_remove_selection, args=(sid,))
+
+# Add button
+st.markdown('<div class="add-btn">', unsafe_allow_html=True)
+st.button("＋ Add", on_click=_add_selection, use_container_width=False)
+st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("<div style='margin-bottom:1.2rem;'></div>", unsafe_allow_html=True)
 
-# Ranked table — aggregate to district level when in district mode
+# ─── DATA TABLE ───────────────────────────────────────────────────────
 if district_mode:
-    num_cols = ["Custom Fit Score", "SMATH_Y1", "SELA_Y1", "AVG_SIZE", "PERDI", "PEREL", "PERSD"]
-    num_cols = [c for c in num_cols if c in scored_county.columns]
-    scored_display = (
-        scored_county.groupby("District")[num_cols]
-        .mean()
-        .round(1)
-        .reset_index()
-        .sort_values("Custom Fit Score", ascending=False)
-    )
-    scored_display["_rank"] = scored_display["Custom Fit Score"].rank(
-        ascending=False, method="min").astype(int)
-    total_ranked = len(scored_display)
+    scored_display = _dist_agg
     display_cols = ["Custom Fit Score", "District",
                     "SMATH_Y1", "SELA_Y1", "AVG_SIZE", "PERDI", "PEREL", "PERSD"]
-    display_cols = [c for c in display_cols if c in scored_display.columns]
 else:
     scored_display = scored_county
     display_cols = ["Custom Fit Score", "School", "District",
                     "SMATH_Y1", "SELA_Y1", "AVG_SIZE", "PERDI", "PEREL", "PERSD"]
-    display_cols = [c for c in display_cols if c in scored_display.columns]
+
+display_cols = [c for c in display_cols if c in scored_display.columns]
 
 col_cfg = {
-    "Custom Fit Score": st.column_config.NumberColumn(
-        "⭐",
-        format="%.1f",
-        width=25,
-    ),
+    "Custom Fit Score": st.column_config.NumberColumn("⭐", format="%.1f", width=25),
     "SMATH_Y1": st.column_config.NumberColumn("Math %",   format="%.1f", width="small"),
     "SELA_Y1":  st.column_config.NumberColumn("ELA %",    format="%.1f", width="small"),
     "AVG_SIZE": st.column_config.NumberColumn("Class Sz", format="%.1f", width="small"),
@@ -1035,21 +977,23 @@ col_cfg = {
     "PERSD":    st.column_config.NumberColumn("SWD %",    format="%.1f", width="small"),
 }
 
-# Build display dataframe and highlight School A / School B rows
 _table_df = scored_display[display_cols].copy().reset_index(drop=True)
-_match_col = "District" if district_mode else "School"
+_selected_set = set(selected_labels)
 
-def _highlight_ab(row):
-    """Return background style per row for school A (indigo) / school B (rose)."""
-    val = row.get(_match_col, "")
-    if val == label_a:
-        return [f"background-color: rgba(99,102,241,0.18); color: {ACCENT_A}"] * len(row)
-    elif val == label_b:
-        return [f"background-color: rgba(244,63,94,0.18); color: {ACCENT_B}"] * len(row)
+
+def _highlight_selected(row):
+    """Highlight rows matching any user selection."""
+    if district_mode:
+        val = row.get("District", "")
+    else:
+        val = (row.get("District", ""), row.get("School", ""))
+    if val in _selected_set:
+        return [f"background-color: rgba(0,212,255,0.12); color: {ACCENT_P}"] * len(row)
     return [""] * len(row)
 
+
 def _score_bar(col):
-    """CSS bar background per cell — color matches the card-ring hue."""
+    """CSS bar background per cell -- hue matches score."""
     styles = []
     for v in col:
         try:
@@ -1058,11 +1002,11 @@ def _score_bar(col):
             styles.append("")
             continue
         clamped = min(max(s, 3.0), 9.0)
-        pct = (clamped - 3.0) / 6.0  # 0—1 over the 3–9 range
+        pct = (clamped - 3.0) / 6.0
         if pct <= 0.5:
-            hue = int(pct * 2 * 60)           # 0 → 60
+            hue = int(pct * 2 * 60)
         else:
-            hue = int(60 + (pct - 0.5) * 2 * 70)  # 60 → 130
+            hue = int(60 + (pct - 0.5) * 2 * 70)
         c = f"hsl({hue}, 80%, 50%)"
         styles.append(
             f"background-color: {c}; color: #181818; font-weight: 700; text-align: center;"
@@ -1071,7 +1015,7 @@ def _score_bar(col):
 
 
 _styled = (_table_df.style
-           .apply(_highlight_ab, axis=1)
+           .apply(_highlight_selected, axis=1)
            .apply(_score_bar, subset=["Custom Fit Score"])
 )
 
@@ -1083,220 +1027,8 @@ st.dataframe(
     height=740,
 )
 
-with st.expander("Detailed Visual Comparisons", expanded=False):
-
-    # ─── ROW 1 — CLASS SIZE GAUGE + PICTOGRAPH ────────────────────────────
-    size_a_val = int(round(data_a["AVG_SIZE"]))
-    size_b_val = int(round(data_b["AVG_SIZE"]))
-
-    MAX_SEATS = 40  # total desk slots in the classroom grid
-
-    def _icon(color, w_head, h_head, w_body, h_body, op="1"):
-        """CSS person icon at arbitrary size."""
-        return (
-            f'<span style="display:inline-block;text-align:center;opacity:{op};">'
-            f'<span style="display:block;width:{w_head}px;height:{h_head}px;border-radius:50%;'
-            f'background:{color};margin:0 auto;"></span>'
-            f'<span style="display:block;width:{w_body}px;height:{h_body}px;'
-            f'border-radius:{w_body//2}px {w_body//2}px 2px 2px;'
-            f'background:{color};margin:1px auto 0;"></span>'
-            f'</span>'
-        )
-
-    def build_classroom(count, color, value):
-        """Classroom card: top bar (number) · classroom grid below."""
-        empty = "#252836"
-
-        # ── TOP BAR: number left ──
-        top_bar = (
-            f'<div style="display:flex;align-items:center;'
-            f'margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid {BORDER};">'
-            f'<div style="display:flex;align-items:baseline;gap:6px;">'
-            f'<span style="font-family:\'Inter\',sans-serif;font-size:1.6rem;'
-            f'font-weight:700;color:{color};line-height:1;">{value:.1f}</span>'
-            f'<span style="font-size:0.65rem;color:{MUTED};'
-            f'font-family:Inter,sans-serif;">students</span>'
-            f'</div>'
-            f'</div>'
-        )
-
-        # ── CLASSROOM: teacher + wide student grid ──
-        teacher_row = (
-            f'<div style="text-align:center;margin-bottom:6px;">'
-            f'{_icon(color, 8, 8, 12, 14)}'
-            f'<div style="width:80%;max-width:120px;height:1px;background:{BORDER};'
-            f'margin:4px auto 0;"></div>'
-            f'</div>'
-        )
-
-        # 10 columns — uses full card width, only 4 rows
-        cols = 10
-        grid = ""
-        for i in range(MAX_SEATS):
-            if i % cols == 0:
-                if i: grid += "</div>"
-                grid += '<div style="display:flex;justify-content:center;gap:2px;margin:2px 0;">'
-            fill = color if i < count else empty
-            op = "1" if i < count else "0.22"
-            grid += f'<span style="flex:0 0 auto;">{_icon(fill, 5, 5, 7, 9, op)}</span>'
-        grid += "</div>"
-
-        footer = (
-            f'<div style="text-align:center;margin-top:6px;font-size:0.62rem;color:{MUTED};'
-            f'font-family:Inter,sans-serif;letter-spacing:0.06em;">'
-            f'{count} of {MAX_SEATS} seats</div>'
-        )
-
-        return (
-            f'<div style="background:{CARD};border:1px solid {BORDER};border-radius:8px;'
-            f'padding:12px 16px 10px;">'
-            f'{top_bar}{teacher_row}{grid}{footer}'
-            f'</div>'
-        )
-
-    st.markdown('<div class="sec-label">Average Class Size</div>', unsafe_allow_html=True)
-    c_class_a, c_class_b = st.columns([1, 1], gap="small")
-
-    with c_class_a:
-        st.markdown(build_classroom(size_a_val, ACCENT_A, data_a["AVG_SIZE"]), unsafe_allow_html=True)
-
-    with c_class_b:
-        st.markdown(build_classroom(size_b_val, ACCENT_B, data_b["AVG_SIZE"]), unsafe_allow_html=True)
-
-
-    # ─── ROW 2 — PROFICIENCY BARS ──────────────────────────────────────────
-    st.markdown('<div class="sec-label">Performance Profile</div>', unsafe_allow_html=True)
-
-    # ── grouped bar — math & ela side-by-side ──
-    subjects = ["Math Proficiency", "English Language Arts"]
-    vals_a = [data_a["SMATH_Y1"], data_a["SELA_Y1"]]
-    vals_b = [data_b["SMATH_Y1"], data_b["SELA_Y1"]]
-
-    fig_b = go.Figure()
-    fig_b.add_trace(go.Bar(
-        x=subjects, y=vals_a, name=label_a,
-        marker=dict(color=ACCENT_A, cornerradius=4),
-        text=[f"{v:.1f}%" for v in vals_a], textposition="outside",
-        textfont=dict(color=ACCENT_A, size=12, family="Inter", weight=700),
-        width=0.32,
-    ))
-    fig_b.add_trace(go.Bar(
-        x=subjects, y=vals_b, name=label_b,
-        marker=dict(color=ACCENT_B, cornerradius=4),
-        text=[f"{v:.1f}%" for v in vals_b], textposition="outside",
-        textfont=dict(color=ACCENT_B, size=12, family="Inter", weight=700),
-        width=0.32,
-    ))
-    fig_b.update_layout(
-        **_PLT,
-        height=300,
-        barmode="group",
-        yaxis=dict(range=[0, max(max(vals_a), max(vals_b)) * 1.25],
-                   gridcolor=BORDER, gridwidth=1, tickfont=dict(color=MUTED, size=10),
-                   showgrid=True),
-        xaxis=dict(tickfont=dict(color=TEXT, size=11, family="Inter", weight=600)),
-        legend=dict(orientation="h", y=-0.18, x=0.5, xanchor="center",
-                    font=dict(size=10, color=MUTED)),
-        showlegend=True,
-        bargap=0.25,
-    )
-    st.plotly_chart(fig_b, use_container_width=True, config={"displayModeBar": False})
-
-    # ─── ROW 3 — DEMOGRAPHICS  ────────────────────────────────────────────
-    st.markdown('<div class="sec-label">Demographics &amp; Enrollment</div>', unsafe_allow_html=True)
-    c_eth, c_prog = st.columns([1, 1], gap="small")
-
-    # ── butterfly chart — ethnicity ──
-    with c_eth:
-        eth_map = {
-            "PERHI":    "Hispanic / Latino",
-            "PERWH":    "White",
-            "PERAS":    "Asian",
-            "PERAA":    "Black",
-            "PERMULTI": "Two+",
-            "PERFI":    "Filipino",
-        }
-        rows = [{"L": n, "A": data_a.get(k, 0), "B": data_b.get(k, 0)} for k, n in eth_map.items()]
-        eth = pd.DataFrame(rows).sort_values("A", ascending=True)
-
-        fig_e = go.Figure()
-        fig_e.add_trace(go.Bar(
-            y=eth["L"], x=[-v for v in eth["A"]], orientation="h",
-            marker=dict(color=ACCENT_A, cornerradius=3),
-            text=[f"{v:.1f}%" for v in eth["A"]], textposition="inside",
-            textfont=dict(color="white", size=10, family="Inter"),
-            hovertemplate="%{y}: %{x:abs:.1f}%<extra>A</extra>",
-            name=label_a,
-        ))
-        fig_e.add_trace(go.Bar(
-            y=eth["L"], x=eth["B"].tolist(), orientation="h",
-            marker=dict(color=ACCENT_B, cornerradius=3),
-            text=[f"{v:.1f}%" for v in eth["B"]], textposition="inside",
-            textfont=dict(color="white", size=10, family="Inter"),
-            hovertemplate="%{y}: %{x:.1f}%<extra>B</extra>",
-            name=label_b,
-        ))
-        fig_e.update_layout(
-            **_PLT,
-            height=300,
-            barmode="relative",
-            xaxis=dict(tickvals=[-80, -40, 0, 40, 80],
-                       ticktext=["80%", "40%", "0", "40%", "80%"],
-                       gridcolor=BORDER, zeroline=True, zerolinecolor=BORDER, zerolinewidth=1,
-                       tickfont=dict(color=MUTED, size=9)),
-            yaxis=dict(tickfont=dict(color=TEXT, size=10, family="Inter", weight=500)),
-            legend=dict(orientation="h", y=-0.18, x=0.5, xanchor="center",
-                        font=dict(size=10, color=MUTED)),
-            showlegend=True,
-            bargap=0.2,
-        )
-        st.plotly_chart(fig_e, use_container_width=True, config={"displayModeBar": False})
-
-    # ── horizontal grouped bar — program enrollment ──
-    with c_prog:
-        prog_map = {
-            "PEREL": "English Learners",
-            "PERDI": "Socio-Econ Disadv.",
-            "PERSD": "Disabilities",
-        }
-        prog_rows = [{"L": n, "A": data_a.get(k, 0), "B": data_b.get(k, 0)} for k, n in prog_map.items()]
-        # Fixed order: English Learners, Socio-Econ Disadv., Disabilities (reversed for horizontal bar)
-        prog = pd.DataFrame(prog_rows)
-        prog = prog.iloc[::-1].reset_index(drop=True)  # reverse so bottom-up reads top-down
-
-        fig_p = go.Figure()
-        fig_p.add_trace(go.Bar(
-            y=prog["L"], x=prog["A"].tolist(), orientation="h",
-            marker=dict(color=ACCENT_A, cornerradius=3),
-            text=[f"{v:.1f}%" for v in prog["A"]], textposition="outside",
-            textfont=dict(color=ACCENT_A, size=11, family="Inter", weight=600),
-            name=label_a, width=0.35,
-        ))
-        fig_p.add_trace(go.Bar(
-            y=prog["L"], x=prog["B"].tolist(), orientation="h",
-            marker=dict(color=ACCENT_B, cornerradius=3),
-            text=[f"{v:.1f}%" for v in prog["B"]], textposition="outside",
-            textfont=dict(color=ACCENT_B, size=11, family="Inter", weight=600),
-            name=label_b, width=0.35,
-        ))
-        fig_p.update_layout(
-            **_PLT,
-            height=300,
-            barmode="group",
-            xaxis=dict(gridcolor=BORDER, gridwidth=1,
-                       tickfont=dict(color=MUTED, size=9),
-                       range=[0, max(max(prog["A"]), max(prog["B"])) * 1.35]),
-            yaxis=dict(tickfont=dict(color=TEXT, size=10, family="Inter", weight=500)),
-            legend=dict(orientation="h", y=-0.22, x=0.5, xanchor="center",
-                        font=dict(size=10, color=MUTED)),
-            showlegend=True,
-            bargap=0.25,
-        )
-        st.plotly_chart(fig_p, use_container_width=True, config={"displayModeBar": False})
-
 # ─── FOOTER ────────────────────────────────────────────────────────────
 st.markdown(
     '<div class="dash-footer">CAASPP Analytics · Custom Fit Score · All data from CA Dept. of Education</div>',
     unsafe_allow_html=True,
 )
-
