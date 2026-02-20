@@ -1,5 +1,4 @@
 ﻿import streamlit as st
-import streamlit.components.v1 as components
 import pandas as pd
 import plotly.graph_objects as go
 import os
@@ -19,34 +18,28 @@ CARD     = "#191c27"
 BORDER   = "#252836"
 TEXT     = "#eaecf0"
 MUTED    = "#bebfc5"
-ACCENT_A = "#7e80f1"   # indigo  — School A
+ACCENT_A = "#4d67cd"   # indigo  — School A
 ACCENT_B = "#f4556f"   # rose    — School B
-ACCENT_P = "#addae5"   # amber   — Ranking parameters
+ACCENT_P = "#e2ed3f"   # amber   — Ranking parameters
 
 # ─── GLOBAL STYLES ─────────────────────────────────────────────────────
 st.markdown(f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 /* ── reset ── */
 footer {{visibility:hidden;}}
 #MainMenu {{visibility:hidden;}}
-/* Keep header visible so sidebar toggle shows */
 header[data-testid="stHeader"] {{
-    background: {BG} !important;
-    border-bottom: 1px solid {BORDER} !important;
-}}
-header[data-testid="stHeader"] button {{
-    color: {TEXT} !important;
+    display: none !important;
 }}
 
 /* ── app ── */
 .stApp {{
     background: {BG};
     color: {TEXT};
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
 }}
 .block-container {{
     padding: 4.5rem 1.6rem 2rem !important;
@@ -138,10 +131,10 @@ div[data-testid="stMetricValue"] > div {{
     color: {TEXT} !important;
     font-size: 1.55rem !important;
     font-weight: 800 !important;
-    font-family: 'Space Mono', monospace !important;
+    font-family: 'Inter', sans-serif !important;
 }}
 div[data-testid="stMetricDelta"] {{
-    font-family: 'Space Mono', monospace !important;
+    font-family: 'Inter', sans-serif !important;
     font-weight: 600 !important;
     font-size: 0.72rem !important;
 }}
@@ -152,7 +145,7 @@ div[data-testid="stMetricDelta"] svg {{
 
 /* ── section titles ── */
 .sec-label {{
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 0.75rem;
     font-weight: 700;
     color: {MUTED};
@@ -171,7 +164,7 @@ div[data-testid="stMetricDelta"] svg {{
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.04em;
-    font-family: 'Space Mono', monospace;
+    font-family: 'Inter', sans-serif;
 }}
 .tag-a {{ background: rgba(99,102,241,0.15); color: {ACCENT_A}; }}
 .tag-b {{ background: rgba(244,63,94,0.15); color: {ACCENT_B}; }}
@@ -319,29 +312,21 @@ section[data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stThumbV
     font-size: 0.7rem !important;
     background: transparent !important;
 }}
-/* select_slider: also target the value display span */
+/* Slider: also target the value display span */
 section[data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stThumbValue"] span,
 section[data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stThumbValue"] div {{
     color: {ACCENT_P} !important;
 }}
 
-/* ── Slider track — neutralise fill via overlay ── */
+/* ── Slider track ── */
 section[data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stSliderTrack"] {{
-    position: relative !important;
-    overflow: hidden !important;
     background: {BORDER} !important;
 }}
-/* Overlay that covers the Streamlit fill completely */
-section[data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stSliderTrack"]::after {{
-    content: '' !important;
-    position: absolute !important;
-    inset: 0 !important;
-    background: {BORDER} !important;
-    z-index: 1 !important;
-    pointer-events: none !important;
-    border-radius: inherit !important;
+/* Filled portion of the track = ACCENT_P */
+section[data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stSliderTrack"] > div:first-child {{
+    background: {ACCENT_P} !important;
 }}
-/* Thumb must sit above the overlay */
+/* Thumb must sit above the track */
 section[data-testid="stSidebar"] [data-testid="stSlider"] [role="slider"] {{
     position: relative !important;
     z-index: 2 !important;
@@ -367,19 +352,14 @@ section[data-testid="stSidebar"] [data-testid="stSlider"] label p {{
 section[data-testid="stSidebar"] [data-testid="stSlider"] {{
     padding-top: 0 !important;
     padding-bottom: 0 !important;
-    margin-bottom: -2px !important;
+    margin-bottom: 8px !important;
 }}
 
-/* ── Endpoint labels: CSS layer (JS MutationObserver handles hover) ── */
+/* ── Slider min/max labels: hide for clean look ── */
 section[data-testid="stSidebar"] [data-testid="stTickBarMin"],
 section[data-testid="stSidebar"] [data-testid="stTickBarMax"],
 section[data-testid="stSidebar"] [data-testid="stTickBar"] {{
     display: none !important;
-    visibility: hidden !important;
-    height: 0 !important;
-    width: 0 !important;
-    overflow: hidden !important;
-    position: absolute !important;
 }}
 
 /* ── Target segmented control — accent highlight + vertical center ── */
@@ -438,7 +418,7 @@ section[data-testid="stSidebar"] [data-testid="stTickBar"] {{
     gap: 8px;
 }}
 .fit-card-name {{
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 1rem;
     font-weight: 700;
     letter-spacing: 0.01em;
@@ -446,7 +426,7 @@ section[data-testid="stSidebar"] [data-testid="stTickBar"] {{
     flex: 1;
 }}
 .fit-card-badge {{
-    font-family: 'Space Mono', monospace;
+    font-family: 'Inter', sans-serif;
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -478,17 +458,8 @@ section[data-testid="stSidebar"] [data-testid="stTickBar"] {{
     justify-content: center;
     position: relative;
 }}
-.fit-card-ring-inner {{
-    width: 94px;
-    height: 94px;
-    border-radius: 50%;
-    background: {CARD};
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}}
 .fit-card-score {{
-    font-family: 'Space Mono', monospace;
+    font-family: 'Inter', sans-serif;
     font-size: 2.4rem;
     font-weight: 900;
     line-height: 1;
@@ -512,7 +483,7 @@ section[data-testid="stSidebar"] [data-testid="stTickBar"] {{
     min-width: 80px;
 }}
 .fit-card-rank-num {{
-    font-family: 'Space Mono', monospace;
+    font-family: 'Inter', sans-serif;
     font-size: 2rem;
     font-weight: 900;
     line-height: 1;
@@ -522,7 +493,7 @@ section[data-testid="stSidebar"] [data-testid="stTickBar"] {{
     font-size: 0.62rem;
     font-weight: 600;
     color: {MUTED};
-    font-family: 'Space Mono', monospace;
+    font-family: 'Inter', sans-serif;
 }}
 .fit-card-rank-label {{
     font-size: 0.55rem;
@@ -556,7 +527,7 @@ section[data-testid="stSidebar"] [data-testid="stTickBar"] {{
 /* ── target preference inline text-buttons ── */
 section[data-testid="stSidebar"] .stMarkdown p.tgt-lbl {{
     color: {MUTED} !important;
-    font-family: 'DM Sans', sans-serif !important;
+    font-family: 'Inter', sans-serif !important;
     font-size: 0.72rem !important;
     font-weight: 700 !important;
     letter-spacing: 0.04em !important;
@@ -572,7 +543,7 @@ section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] [data-testid=
     border: none !important;
     box-shadow: none !important;
     padding: 0 3px !important;
-    font-family: 'DM Sans', sans-serif !important;
+    font-family: 'Inter', sans-serif !important;
     font-size: 0.72rem !important;
     font-weight: 600 !important;
     letter-spacing: 0.08em !important;
@@ -618,13 +589,6 @@ def load_data():
 df_master = load_data()
 
 # ─── METRIC CONFIGURATION ──────────────────────────────────────────────
-IMPORTANCE_LABELS = ["Ignore", "Low Importance", "Medium Importance", "High Importance", "Critical"]
-IMPORTANCE_TO_NUM = {"Ignore": 0, "Low Importance": 2, "Medium Importance": 5, "High Importance": 8, "Critical": 10}
-
-_NUM_TO_LABEL = {v: k for k, v in IMPORTANCE_TO_NUM.items()}
-def _weight_to_label(w):
-    closest = min(IMPORTANCE_TO_NUM.values(), key=lambda v: abs(v - w))
-    return _NUM_TO_LABEL[closest]
 
 # ─── Card groups ───
 CARD_GROUPS = [
@@ -705,7 +669,11 @@ METRIC_CONFIG = {
 
 def calculate_custom_scores(df, settings):
     """
-    Calculate a Custom Fit Score (0-100) for every row.
+    Calculate a Custom Fit Score (0–10) for every row.
+
+    Uses percentile-rank normalisation with a concave curve (x^0.7)
+    so that above-average schools score closer to 10 while poor fits
+    still separate clearly toward 0.
 
     Parameters
     ----------
@@ -735,18 +703,18 @@ def calculate_custom_scores(df, settings):
         metric_type = metric.get("type", "linear")
 
         if metric_type == "linear":
-            v_min, v_max = values.min(), values.max()
-            if v_max == v_min:
-                normalized = pd.Series(0.5, index=scored.index)
-            else:
-                normalized = (values - v_min) / (v_max - v_min)
+            # Percentile rank (0-1): immune to outlier skew
+            normalized = values.rank(pct=True)
             if metric.get("direction") == "lower":
                 normalized = 1.0 - normalized
         else:  # target
             target = cfg.get("target", 50)
-            max_distance = max(target, 100 - target, 1)  # avoid /0
-            normalized = 1.0 - (values - target).abs() / max_distance
-            normalized = normalized.clip(0, 1)
+            distance = (values - target).abs()
+            # Smaller distance = better fit → higher percentile
+            normalized = 1.0 - distance.rank(pct=True)
+
+        # Concave curve: pushes above-average scores toward 1.0
+        normalized = normalized.clip(0, 1) ** 0.7
 
         weighted_sum += normalized * weight
         total_weight += weight
@@ -857,38 +825,14 @@ st.markdown(glow_css, unsafe_allow_html=True)
 scoring_settings = {}
 
 def _handle_reset():
-    """Reset all weights to Medium Importance and targets to first directional option."""
+    """Reset all weights to default and targets to first directional option."""
     for _col, _cfg in METRIC_CONFIG.items():
-        st.session_state[f"w_{_col}"] = "Medium Importance"
+        st.session_state[f"w_{_col}"] = _cfg["default_weight"]
         if _cfg["type"] == "target":
             _opts = list(_cfg["options"].keys())
             st.session_state[f"t_{_col}"] = _opts[0]
 
 with st.sidebar:
-    # ── JS: MutationObserver — hide endpoint labels ──
-    components.html("""
-    <script>
-    (function() {
-        const TIDS = ['stTickBarMin', 'stTickBarMax', 'stTickBar'];
-        function hide() {
-            const doc = window.parent.document;
-            const sidebar = doc.querySelector('[data-testid="stSidebar"]');
-            if (!sidebar) return;
-            TIDS.forEach(tid => {
-                sidebar.querySelectorAll('[data-testid="' + tid + '"]').forEach(el => {
-                    el.style.setProperty('display', 'none', 'important');
-                });
-            });
-        }
-        hide();
-        const obs = new MutationObserver(hide);
-        obs.observe(window.parent.document.body, {
-            childList: true, subtree: true,
-            attributes: true, attributeFilter: ['style', 'class']
-        });
-    })();
-    </script>
-    """, height=0)
     # ── reset button only (no title) ──
     st.markdown('<div class="reset-btn">', unsafe_allow_html=True)
     st.button("↺ Reset", on_click=_handle_reset, use_container_width=False)
@@ -901,7 +845,7 @@ with st.sidebar:
 
             # Seed session state with default if not already set
             if f"w_{col}" not in st.session_state:
-                st.session_state[f"w_{col}"] = _weight_to_label(cfg["default_weight"])
+                st.session_state[f"w_{col}"] = cfg["default_weight"]
 
             # For target metrics, show inline 2-choice text on same line as label
             if cfg["type"] == "target":
@@ -935,23 +879,21 @@ with st.sidebar:
                     )
 
                 target_val = cfg["options"].get(selected, 50)
-                imp_label = st.select_slider(
+                w = st.slider(
                     cfg["label"],
-                    options=IMPORTANCE_LABELS,
+                    min_value=0, max_value=10, step=1,
                     key=f"w_{col}",
                     help=cfg.get("tip", ""),
                     label_visibility="collapsed",
                 )
-                w = IMPORTANCE_TO_NUM[imp_label]
                 scoring_settings[col] = {"weight": w, "target": target_val}
             else:
-                imp_label = st.select_slider(
+                w = st.slider(
                     cfg["label"],
-                    options=IMPORTANCE_LABELS,
+                    min_value=0, max_value=10, step=1,
                     key=f"w_{col}",
                     help=cfg.get("tip", ""),
                 )
-                w = IMPORTANCE_TO_NUM[imp_label]
                 scoring_settings[col] = {"weight": w}
 
 # ─── RESOLVE DATA ─────────────────────────────────────────────────────
@@ -1003,20 +945,17 @@ def _fit_card(label, score, rank, school_color):
     r_num = f"#{rank}" if rank is not None else "—"
     r_of = f"of {total_ranked}" if rank is not None else ""
 
-    # Score-based gradient ring: green(≥9) → yellow(6) → red(≤3)
+    # Score-based solid circle: green(≥9) → yellow(6) → red(≤3)
+    # Number is colored as card BG so it looks "cut out" of the circle
     if score is not None:
         clamped = min(max(score, 3.0), 9.0)
         pct = (clamped - 3.0) / 6.0  # 0—1 over the 3–9 range
-        # Interpolate hue: 0 (red) at 3 → 60 (yellow) at 6 → 130 (green) at 9
         if pct <= 0.5:
             hue = int(pct * 2 * 60)        # 0→60
         else:
             hue = int(60 + (pct - 0.5) * 2 * 70)  # 60→130
         ring_color = f"hsl({hue}, 80%, 50%)"
-        # Conic gradient: colored arc from 0 to score%, then dark for the rest
-        arc_pct = min(max(score, 0), 10) / 10
-        arc_deg = int(arc_pct * 360)
-        ring_bg = f"conic-gradient({ring_color} 0deg, {ring_color} {arc_deg}deg, {BORDER} {arc_deg}deg, {BORDER} 360deg)"
+        ring_bg = ring_color  # solid fill
     else:
         ring_bg = BORDER
         ring_color = MUTED
@@ -1038,9 +977,7 @@ def _fit_card(label, score, rank, school_color):
         <div class="fit-card-body">
             <div class="fit-card-score-wrap">
                 <div class="fit-card-ring" style="background:{ring_bg};">
-                    <div class="fit-card-ring-inner">
-                        <div class="fit-card-score" style="color:{ring_color};">{s}</div>
-                    </div>
+                    <div class="fit-card-score" style="color:{CARD};">{s}</div>
                 </div>
                 <div class="fit-card-score-label">Custom Fit Score</div>
             </div>
@@ -1075,20 +1012,20 @@ if district_mode:
     scored_display["_rank"] = scored_display["Custom Fit Score"].rank(
         ascending=False, method="min").astype(int)
     total_ranked = len(scored_display)
-    display_cols = ["District", "Custom Fit Score",
+    display_cols = ["Custom Fit Score", "District",
                     "SMATH_Y1", "SELA_Y1", "AVG_SIZE", "PERDI", "PEREL", "PERSD"]
     display_cols = [c for c in display_cols if c in scored_display.columns]
 else:
     scored_display = scored_county
-    display_cols = ["School", "District", "Custom Fit Score",
+    display_cols = ["Custom Fit Score", "School", "District",
                     "SMATH_Y1", "SELA_Y1", "AVG_SIZE", "PERDI", "PEREL", "PERSD"]
     display_cols = [c for c in display_cols if c in scored_display.columns]
 
 col_cfg = {
     "Custom Fit Score": st.column_config.NumberColumn(
-        "Score",
+        "⭐",
         format="%.1f",
-        width="6em",  # just enough for '10.0'
+        width=25,
     ),
     "SMATH_Y1": st.column_config.NumberColumn("Math %",   format="%.1f", width="small"),
     "SELA_Y1":  st.column_config.NumberColumn("ELA %",    format="%.1f", width="small"),
@@ -1133,30 +1070,9 @@ def _score_bar(col):
     return styles
 
 
-# Set Custom Fit Score column width via Styler CSS
-
-def _set_score_col_width(styler):
-    # Set width for both cell and header using CSS with !important
-    styler.set_table_styles([
-        {"selector": "th.col_heading.level0.col0", "props": [
-            ("min-width", "3.5em !important"),
-            ("max-width", "3.5em !important"),
-            ("width", "3.5em !important"),
-            ("text-align", "center !important")
-        ]},
-        {"selector": "td.col0", "props": [
-            ("min-width", "3.5em !important"),
-            ("max-width", "3.5em !important"),
-            ("width", "3.5em !important"),
-            ("text-align", "center !important")
-        ]},
-    ], overwrite=False)
-    return styler
-
 _styled = (_table_df.style
            .apply(_highlight_ab, axis=1)
            .apply(_score_bar, subset=["Custom Fit Score"])
-           .pipe(_set_score_col_width)
 )
 
 st.dataframe(
@@ -1196,7 +1112,7 @@ with st.expander("Detailed Visual Comparisons", expanded=False):
             f'<div style="display:flex;align-items:center;'
             f'margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid {BORDER};">'
             f'<div style="display:flex;align-items:baseline;gap:6px;">'
-            f'<span style="font-family:\'Space Mono\',monospace;font-size:1.6rem;'
+            f'<span style="font-family:\'Inter\',sans-serif;font-size:1.6rem;'
             f'font-weight:700;color:{color};line-height:1;">{value:.1f}</span>'
             f'<span style="font-size:0.65rem;color:{MUTED};'
             f'font-family:Inter,sans-serif;">students</span>'
@@ -1261,14 +1177,14 @@ with st.expander("Detailed Visual Comparisons", expanded=False):
         x=subjects, y=vals_a, name=label_a,
         marker=dict(color=ACCENT_A, cornerradius=4),
         text=[f"{v:.1f}%" for v in vals_a], textposition="outside",
-        textfont=dict(color=ACCENT_A, size=12, family="Space Mono", weight=700),
+        textfont=dict(color=ACCENT_A, size=12, family="Inter", weight=700),
         width=0.32,
     ))
     fig_b.add_trace(go.Bar(
         x=subjects, y=vals_b, name=label_b,
         marker=dict(color=ACCENT_B, cornerradius=4),
         text=[f"{v:.1f}%" for v in vals_b], textposition="outside",
-        textfont=dict(color=ACCENT_B, size=12, family="Space Mono", weight=700),
+        textfont=dict(color=ACCENT_B, size=12, family="Inter", weight=700),
         width=0.32,
     ))
     fig_b.update_layout(
@@ -1308,7 +1224,7 @@ with st.expander("Detailed Visual Comparisons", expanded=False):
             y=eth["L"], x=[-v for v in eth["A"]], orientation="h",
             marker=dict(color=ACCENT_A, cornerradius=3),
             text=[f"{v:.1f}%" for v in eth["A"]], textposition="inside",
-            textfont=dict(color="white", size=10, family="Space Mono"),
+            textfont=dict(color="white", size=10, family="Inter"),
             hovertemplate="%{y}: %{x:abs:.1f}%<extra>A</extra>",
             name=label_a,
         ))
@@ -1316,7 +1232,7 @@ with st.expander("Detailed Visual Comparisons", expanded=False):
             y=eth["L"], x=eth["B"].tolist(), orientation="h",
             marker=dict(color=ACCENT_B, cornerradius=3),
             text=[f"{v:.1f}%" for v in eth["B"]], textposition="inside",
-            textfont=dict(color="white", size=10, family="Space Mono"),
+            textfont=dict(color="white", size=10, family="Inter"),
             hovertemplate="%{y}: %{x:.1f}%<extra>B</extra>",
             name=label_b,
         ))
@@ -1353,14 +1269,14 @@ with st.expander("Detailed Visual Comparisons", expanded=False):
             y=prog["L"], x=prog["A"].tolist(), orientation="h",
             marker=dict(color=ACCENT_A, cornerradius=3),
             text=[f"{v:.1f}%" for v in prog["A"]], textposition="outside",
-            textfont=dict(color=ACCENT_A, size=11, family="Space Mono", weight=600),
+            textfont=dict(color=ACCENT_A, size=11, family="Inter", weight=600),
             name=label_a, width=0.35,
         ))
         fig_p.add_trace(go.Bar(
             y=prog["L"], x=prog["B"].tolist(), orientation="h",
             marker=dict(color=ACCENT_B, cornerradius=3),
             text=[f"{v:.1f}%" for v in prog["B"]], textposition="outside",
-            textfont=dict(color=ACCENT_B, size=11, family="Space Mono", weight=600),
+            textfont=dict(color=ACCENT_B, size=11, family="Inter", weight=600),
             name=label_b, width=0.35,
         ))
         fig_p.update_layout(
