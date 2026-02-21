@@ -1,0 +1,411 @@
+/* ─── FONTS ──────────────────────────────────────────────────────── */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+
+/* ─── PALETTE (CSS variables) ────────────────────────────────────── */
+:root {
+  --bg: #0c0e14;
+  --surface: #13151d;
+  --card: #191c27;
+  --border: #252836;
+  --text: #eaecf0;
+  --muted: #bebfc5;
+  --accent-a: #4d67cd;
+  --accent-b: #f4556f;
+  --accent-p: #00d4ff;
+}
+
+/* ─── RESET ──────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── SCROLLBAR ──────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* ─── APP SHELL ──────────────────────────────────────────────────── */
+#app-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ─── SIDEBAR ────────────────────────────────────────────────────── */
+#sidebar {
+  width: 380px;
+  min-width: 380px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 1rem 1rem 2rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sidebar-group-title {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-p);
+  border-bottom: 2px solid var(--accent-p);
+  padding: 5px 0;
+  margin: 0.8rem 0 0.3rem;
+}
+.sidebar-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 0 0 2px;
+}
+.sidebar-metric-row {
+  min-height: 52px;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(37, 40, 54, 0.5);
+}
+.sidebar-metric-row:last-child {
+  border-bottom: none;
+}
+
+/* target pref buttons */
+.tgt-btn-group {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.tgt-btn {
+  background: transparent;
+  border: none;
+  padding: 0 4px;
+  font-family: "Inter", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.45;
+  cursor: pointer;
+  transition:
+    opacity 0.15s,
+    color 0.15s;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.tgt-btn:hover {
+  opacity: 0.8;
+  color: var(--text);
+}
+.tgt-btn.active {
+  color: var(--accent-p);
+  opacity: 1;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Reset button */
+.reset-btn {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--muted);
+  font-size: 0.68rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  font-family: "Inter", sans-serif;
+}
+.reset-btn:hover {
+  border-color: var(--accent-p);
+  color: var(--accent-p);
+}
+
+/* ─── Dash 4 slider overrides (Radix-based) ─────────────────────── */
+.dash-slider-track {
+  background-color: var(--border) !important;
+}
+.dash-slider-range {
+  background-color: var(--accent-p) !important;
+}
+.dash-slider-thumb {
+  background-color: var(--accent-p) !important;
+  border-color: var(--accent-p) !important;
+}
+.dash-slider-thumb:hover,
+.dash-slider-thumb:focus {
+  border-color: var(--accent-p) !important;
+  box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.25) !important;
+  outline: none !important;
+}
+.dash-slider-dot {
+  display: none !important;
+}
+.dash-slider-tooltip {
+  display: none !important;
+}
+.dash-input-container {
+  display: none !important;
+}
+/* Sidebar label row */
+.sidebar-label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+/* ─── MAIN CONTENT ───────────────────────────────────────────────── */
+#main-content {
+  flex: 1;
+  padding: 1.6rem 2rem 2rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ─── TOP BAR ────────────────────────────────────────────────────── */
+#top-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: nowrap;
+}
+.mode-btn {
+  font-family: "Inter", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.45rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.mode-btn.active {
+  background: var(--accent-p);
+  color: var(--bg);
+  border-color: var(--accent-p);
+}
+.mode-btn.inactive {
+  background: var(--card);
+  color: var(--muted);
+}
+.mode-btn.inactive:hover {
+  border-color: var(--accent-p);
+  color: var(--text);
+}
+#county-dropdown {
+  min-width: 200px;
+  margin-left: auto;
+}
+
+/* ─── Dash 4 dropdown overrides ──────────────────────────────────── */
+.dash-dropdown-trigger {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 6px !important;
+  color: var(--text) !important;
+}
+.dash-dropdown-value,
+.dash-dropdown-placeholder,
+.dash-dropdown-search {
+  color: var(--text) !important;
+  font-family: "Inter", sans-serif !important;
+}
+.dash-dropdown-content,
+.dash-dropdown-options {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 6px !important;
+}
+.dash-dropdown-option {
+  background: var(--card) !important;
+  color: var(--text) !important;
+}
+.dash-dropdown-option:hover,
+.dash-dropdown-option[data-highlighted] {
+  background: var(--surface) !important;
+  color: var(--accent-p) !important;
+}
+.dash-dropdown-option[data-state="checked"] {
+  color: var(--accent-p) !important;
+}
+.dash-dropdown-trigger-icon {
+  color: var(--muted) !important;
+}
+.dash-dropdown-search-icon {
+  color: var(--muted) !important;
+}
+.dash-dropdown-clear {
+  color: var(--muted) !important;
+}
+/* Make main-area dropdowns larger/bolder */
+#main-content .dash-dropdown-value {
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+}
+
+/* ─── SELECTION CARDS ────────────────────────────────────────────── */
+.sel-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+.sel-dropdown-district {
+  flex: 0 0 260px;
+  min-width: 160px;
+}
+.sel-dropdown-school {
+  flex: 0 0 220px;
+  min-width: 140px;
+}
+.sel-score-area {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.score-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.score-circle span {
+  font-family: "Inter", sans-serif;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--card);
+  letter-spacing: -0.02em;
+}
+.rank-text {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+}
+.rank-num {
+  font-family: "Inter", sans-serif;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--text);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.rank-ctx {
+  font-family: "Inter", sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+.sel-remove-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.9rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.sel-remove-btn:hover {
+  border-color: var(--accent-b);
+  color: var(--accent-b);
+}
+
+/* Add button */
+.add-btn {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--muted);
+  font-size: 0.72rem;
+  padding: 0.35rem 1rem;
+  border-radius: 8px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  font-family: "Inter", sans-serif;
+  transition: all 0.15s;
+}
+.add-btn:hover {
+  border-color: var(--accent-p);
+  color: var(--accent-p);
+}
+
+/* disabled dropdown appearance */
+.sel-dropdown-school.disabled .dash-dropdown-trigger {
+  opacity: 0.3 !important;
+  pointer-events: none !important;
+}
+
+/* ─── DATA TABLE ─────────────────────────────────────────────────── */
+.dash-table-container {
+  overflow: auto;
+}
+.dash-spreadsheet-container .dash-spreadsheet-inner th {
+  background: var(--surface) !important;
+  color: var(--muted) !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  border-bottom: 1px solid var(--border) !important;
+  padding: 8px 12px !important;
+}
+.dash-spreadsheet-container .dash-spreadsheet-inner td {
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.85rem !important;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(37, 40, 54, 0.5) !important;
+  padding: 6px 12px !important;
+  font-family: "Inter", sans-serif !important;
+}
+
+/* ─── FOOTER ─────────────────────────────────────────────────────── */
+.dash-footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  padding: 1rem 0 0.5rem;
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
