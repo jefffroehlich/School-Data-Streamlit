@@ -583,3 +583,198 @@ div[class*="dropdown"] > div {
   margin-top: 1.5rem;
   border-top: 1px solid var(--border);
 }
+
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   MOBILE-FIRST RESPONSIVE OVERHAUL  (< 768 px)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* ── Floating Action Button (mobile-only trigger) ───────────────── */
+.fab-filter {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1060;
+  background: var(--accent-p);
+  color: var(--bg);
+  border: none;
+  border-radius: 50px;
+  padding: 12px 22px;
+  font-family: "Inter", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  align-items: center;
+  gap: 6px;
+}
+.fab-filter:hover {
+  box-shadow: 0 6px 28px rgba(0, 212, 255, 0.6);
+  transform: translateY(-2px);
+}
+
+/* ── Sidebar backdrop (mobile overlay) ──────────────────────────── */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1040;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.sidebar-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Mobile breakpoint ──────────────────────────────────────────── */
+@media (max-width: 767.98px) {
+
+  /* Show FAB & backdrop layer */
+  .fab-filter { display: flex; }
+  .sidebar-backdrop { display: block; }
+
+  /* Sidebar → slide-in off-canvas from left */
+  #sidebar {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 85vw;
+    max-width: 380px;
+    min-width: unset;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1050;
+  }
+  #sidebar.sidebar-open {
+    transform: translateX(0);
+    box-shadow: 4px 0 32px rgba(0, 0, 0, 0.6);
+  }
+
+  /* App shell: single column, viewport-locked */
+  #app-container {
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+  }
+
+  /* Main content: fill remaining space, no page scroll */
+  #main-content {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0.75rem 0.75rem 0;
+    gap: 0.4rem;
+  }
+
+  /* Top bar compact */
+  #top-bar {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .mode-toggle-track { width: 160px; }
+  .mode-label { font-size: 0.58rem; padding: 5px 0; }
+
+  /* ── Horizontal-scroll selection cards ───────────────────────── */
+  #selection-cards {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 10px;
+    padding: 2px 2px 6px;
+    max-height: 20vh;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    flex-shrink: 0;
+  }
+  #selection-cards::-webkit-scrollbar { height: 3px; }
+
+  .sel-row {
+    flex: 0 0 72vw !important;
+    max-width: 300px;
+    flex-wrap: wrap !important;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 8px 10px !important;
+    scroll-snap-align: start;
+    position: relative;
+    gap: 4px 8px !important;
+    align-content: flex-start;
+    overflow: hidden;
+  }
+
+  .sel-dropdown-district {
+    flex: 1 1 55% !important;
+    min-width: 0 !important;
+  }
+  .sel-dropdown-school {
+    flex: 1 1 38% !important;
+    min-width: 0 !important;
+  }
+  .sel-dropdown-school.disabled { display: none; }
+  .sel-score-area { flex: 1 0 100%; }
+  .sel-spacer { display: none; }
+  .sel-remove-btn {
+    position: absolute !important;
+    top: 4px; right: 4px;
+    width: 22px !important; height: 22px !important;
+    font-size: 0.6rem !important;
+  }
+
+  /* Compact dropdowns inside cards */
+  .sel-row .dash-dropdown-trigger {
+    padding: 3px 8px !important;
+  }
+  .sel-row .dash-dropdown-value {
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+  }
+
+  /* Compact score elements */
+  .score-circle { width: 34px; height: 34px; }
+  .score-circle span { font-size: 0.78rem; }
+  .rank-num { font-size: 1.05rem; }
+  .rank-ctx { font-size: 0.52rem; }
+  .rank-badge-row { width: auto; }
+  .badge { font-size: 0.55rem; padding: 2px 6px; }
+
+  /* Add button compact */
+  .add-btn {
+    font-size: 0.62rem;
+    padding: 0.2rem 0.7rem;
+    flex-shrink: 0;
+    align-self: flex-start;
+  }
+
+  /* ── Data-table viewport (independent scroll) ───────────────── */
+  .table-viewport {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+  }
+  .dash-spreadsheet-container .dash-spreadsheet-inner th {
+    font-size: 0.6rem !important;
+    padding: 4px 5px !important;
+  }
+  .dash-spreadsheet-container .dash-spreadsheet-inner td {
+    font-size: 0.73rem !important;
+    padding: 3px 5px !important;
+  }
+
+  /* Footer compact */
+  .dash-footer {
+    font-size: 0.5rem;
+    padding: 0.3rem 0;
+    margin-top: 0.3rem;
+    flex-shrink: 0;
+  }
+}

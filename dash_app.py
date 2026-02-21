@@ -215,7 +215,9 @@ def build_sidebar():
 
 # ─── APP ───────────────────────────────────────────────────────────────
 app = Dash(__name__, suppress_callback_exceptions=True,
-           title="School-Data Analytics", update_title=None)
+           title="School-Data Analytics", update_title=None,
+           meta_tags=[{"name": "viewport",
+                       "content": "width=device-width, initial-scale=1"}])
 server = app.server  # expose for gunicorn
 
 app.layout = html.Div([
@@ -224,6 +226,11 @@ app.layout = html.Div([
         {"district": "Encinitas Union Elementary", "school": "El Camino Creek Elementary"},
         {"district": "Del Mar Union Elementary",   "school": "Sage Canyon"},
     ]),
+    # Mobile FAB – visible only on small screens via CSS
+    html.Button([html.Span("⚙"), " Filters"], id="fab-open-sidebar",
+                className="fab-filter", n_clicks=0),
+    # Backdrop overlay for mobile sidebar dismiss
+    html.Div(id="sidebar-backdrop", className="sidebar-backdrop", n_clicks=0),
     html.Div([
         build_sidebar(),
         html.Div([
@@ -246,9 +253,8 @@ app.layout = html.Div([
             # Selection cards — rendered entirely via callback
             html.Div(id="selection-cards"),
             html.Button("＋ Add", id="add-btn", className="add-btn", n_clicks=0),
-            html.Div(style={"height": "1rem"}),
-            # Data table
-            dash_table.DataTable(
+            # Data table – viewport container for independent mobile scrolling
+            html.Div([dash_table.DataTable(
                 id="data-table",
                 style_header={
                     "backgroundColor": SURFACE, "color": MUTED, "fontWeight": "700",
@@ -266,7 +272,7 @@ app.layout = html.Div([
                 style_data_conditional=[],
                 page_size=50, sort_action="native", sort_mode="single",
                 style_as_list_view=True,
-            ),
+            )], className="table-viewport"),
             html.Div("CAASPP Analytics · Custom Fit Score · All data from CA Dept. of Education",
                       className="dash-footer"),
         ], id="main-content"),
@@ -569,6 +575,21 @@ def reset_all(_):
             [defaults[tc] for tc in TARGET_COLS],
             classes,
             slider_styles)
+
+
+# ── Mobile sidebar toggle ───────────────────────────────────────────────────
+@callback(
+    Output("sidebar", "className"),
+    Output("sidebar-backdrop", "className"),
+    Input("fab-open-sidebar", "n_clicks"),
+    Input("sidebar-backdrop", "n_clicks"),
+    State("sidebar", "className"),
+    prevent_initial_call=True,
+)
+def toggle_mobile_sidebar(fab_clicks, bd_clicks, current_class):
+    if ctx.triggered_id == "fab-open-sidebar" and "sidebar-open" not in (current_class or ""):
+        return "sidebar-open", "sidebar-backdrop active"
+    return "", "sidebar-backdrop"
 
 
 # ═══════════════════════════════════════════════════════════════════════
