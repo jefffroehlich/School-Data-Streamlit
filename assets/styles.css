@@ -21,6 +21,24 @@
 *::after {
   box-sizing: border-box;
 }
+/* Kill browser default purple/blue focus rings globally */
+*:focus {
+  outline: none !important;
+}
+*:focus-visible {
+  outline: none !important;
+}
+button:focus,
+button:active,
+[role="combobox"]:focus,
+[role="combobox"]:active,
+[role="listbox"]:focus,
+[data-radix-collection-item]:focus,
+select:focus,
+input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
 body {
   margin: 0;
   background: var(--bg);
@@ -78,12 +96,17 @@ body {
   margin: 0.8rem 0 0.3rem;
 }
 .sidebar-label {
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: var(--muted);
-  margin: 0 0 2px;
+  margin: 0;
+  line-height: 1.25;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+  flex: 0 0 40%;
 }
 .sidebar-metric-row {
   min-height: 52px;
@@ -94,39 +117,63 @@ body {
   border-bottom: none;
 }
 
-/* target pref buttons */
+/* target pref buttons — sliding pill */
 .tgt-btn-group {
+  position: relative;
   display: flex;
-  gap: 4px;
   align-items: center;
+  background: rgba(37, 40, 54, 0.6);
+  border-radius: 20px;
+  padding: 2px;
+  gap: 0;
+  flex: 0 0 60%;
+  min-width: 0;
+}
+.tgt-slider {
+  position: absolute;
+  top: 2px;
+  width: calc(50% - 2px);
+  height: calc(100% - 4px);
+  background: var(--accent-p);
+  border-radius: 18px;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.3);
+  pointer-events: none;
+  z-index: 0;
 }
 .tgt-btn {
+  position: relative;
+  z-index: 1;
+  flex: 1;
   background: transparent;
   border: none;
-  padding: 0 4px;
+  padding: 3px 6px;
   font-family: "Inter", sans-serif;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   color: var(--muted);
-  opacity: 0.45;
+  opacity: 0.55;
   cursor: pointer;
   transition:
-    opacity 0.15s,
-    color 0.15s;
+    color 0.25s ease,
+    opacity 0.25s ease;
   line-height: 1.3;
   white-space: nowrap;
+  border-radius: 18px;
+  text-align: center;
 }
-.tgt-btn:hover {
-  opacity: 0.8;
+.tgt-btn:hover:not(.active) {
+  opacity: 0.85;
   color: var(--text);
 }
 .tgt-btn.active {
-  color: var(--accent-p);
+  background: transparent;
+  color: #0c0e14;
   opacity: 1;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  text-decoration: none;
+  box-shadow: none;
 }
 
 /* Reset button */
@@ -136,7 +183,7 @@ body {
   color: var(--muted);
   font-size: 0.68rem;
   padding: 0.3rem 0.6rem;
-  border-radius: 8px;
+  border-radius: 20px;
   letter-spacing: 0.06em;
   cursor: pointer;
   font-family: "Inter", sans-serif;
@@ -149,13 +196,17 @@ body {
 /* ─── Dash 4 slider overrides (Radix-based) ─────────────────────── */
 .dash-slider-track {
   background-color: var(--border) !important;
+  height: 3px !important;
 }
 .dash-slider-range {
   background-color: var(--accent-p) !important;
+  height: 3px !important;
 }
 .dash-slider-thumb {
   background-color: var(--accent-p) !important;
   border-color: var(--accent-p) !important;
+  width: 10px !important;
+  height: 10px !important;
 }
 .dash-slider-thumb:hover,
 .dash-slider-thumb:focus {
@@ -176,7 +227,7 @@ body {
 .sidebar-label-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 2px;
 }
 
@@ -197,30 +248,60 @@ body {
   gap: 0.8rem;
   flex-wrap: nowrap;
 }
-.mode-btn {
+/* ─── Sliding mode toggle ─────────────────────────────────────────── */
+.mode-toggle-track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: rgba(37, 40, 54, 0.6);
+  border: none;
+  border-radius: 20px;
+  padding: 2px;
+  gap: 0;
+  width: 220px;
+  flex-shrink: 0;
+}
+.mode-slider {
+  position: absolute;
+  top: 2px;
+  width: calc(50% - 2px);
+  height: calc(100% - 4px);
+  background: var(--accent-p);
+  border-radius: 18px;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.3);
+  pointer-events: none;
+  z-index: 0;
+}
+.mode-label {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  border: none;
   font-family: "Inter", sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  padding: 0.45rem 1.2rem;
-  border-radius: 6px;
+  text-transform: uppercase;
+  padding: 6px 0;
   cursor: pointer;
-  border: 1px solid var(--border);
-  transition: all 0.15s;
+  text-align: center;
   white-space: nowrap;
-}
-.mode-btn.active {
-  background: var(--accent-p);
-  color: var(--bg);
-  border-color: var(--accent-p);
-}
-.mode-btn.inactive {
-  background: var(--card);
   color: var(--muted);
+  opacity: 0.55;
+  transition:
+    color 0.25s ease,
+    opacity 0.25s ease;
+  border-radius: 18px;
 }
-.mode-btn.inactive:hover {
-  border-color: var(--accent-p);
+.mode-label.active {
+  color: #0c0e14;
+  opacity: 1;
+}
+.mode-label:hover:not(.active) {
   color: var(--text);
+  opacity: 0.85;
 }
 #county-dropdown {
   min-width: 200px;
@@ -228,10 +309,21 @@ body {
 }
 
 /* ─── Dash 4 dropdown overrides ──────────────────────────────────── */
+.dash-dropdown,
+.dash-dropdown-root,
+.Select,
+.Select-control,
+.Select-value,
+.Select-input,
+.Select-placeholder,
+div[class*="dropdown"] > div {
+  background: transparent !important;
+  border-radius: 20px !important;
+}
 .dash-dropdown-trigger {
   background: var(--card) !important;
   border: 1px solid var(--border) !important;
-  border-radius: 6px !important;
+  border-radius: 20px !important;
   color: var(--text) !important;
 }
 .dash-dropdown-value,
@@ -244,7 +336,7 @@ body {
 .dash-dropdown-options {
   background: var(--card) !important;
   border: 1px solid var(--border) !important;
-  border-radius: 6px !important;
+  border-radius: 14px !important;
 }
 .dash-dropdown-option {
   background: var(--card) !important;
@@ -252,11 +344,36 @@ body {
 }
 .dash-dropdown-option:hover,
 .dash-dropdown-option[data-highlighted] {
-  background: var(--surface) !important;
+  background: rgba(0, 212, 255, 0.1) !important;
   color: var(--accent-p) !important;
 }
 .dash-dropdown-option[data-state="checked"] {
+  background: rgba(0, 212, 255, 0.08) !important;
   color: var(--accent-p) !important;
+}
+.dash-dropdown-trigger:focus-within {
+  border-color: var(--accent-p) !important;
+  box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.2) !important;
+  outline: none !important;
+}
+.dash-dropdown-trigger:focus,
+.dash-dropdown-trigger:active,
+.dash-dropdown-trigger *:focus,
+.dash-dropdown-trigger *:active,
+.dash-dropdown-trigger[data-state="open"],
+.dash-dropdown-trigger:focus-within *,
+[data-radix-popper-content-wrapper] *:focus {
+  outline: none !important;
+}
+.dash-dropdown-trigger:active,
+.dash-dropdown-trigger *:active {
+  box-shadow: none !important;
+  border-color: var(--border) !important;
+}
+.dash-dropdown-trigger:focus-visible {
+  border-color: var(--accent-p) !important;
+  box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.2) !important;
+  outline: none !important;
 }
 .dash-dropdown-trigger-icon {
   color: var(--muted) !important;
@@ -291,8 +408,8 @@ body {
 .sel-score-area {
   display: flex;
   align-items: center;
-  gap: 14px;
-  flex: 1 1 auto;
+  gap: 8px;
+  flex: 0 0 auto;
   min-width: 0;
 }
 .score-circle {
@@ -311,12 +428,6 @@ body {
   color: var(--card);
   letter-spacing: -0.02em;
 }
-.rank-text {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  white-space: nowrap;
-}
 .rank-num {
   font-family: "Inter", sans-serif;
   font-size: 1.6rem;
@@ -327,9 +438,37 @@ body {
 }
 .rank-ctx {
   font-family: "Inter", sans-serif;
-  font-size: 1rem;
+  font-size: 0.7rem;
   font-weight: 500;
   color: var(--muted);
+  line-height: 1;
+  white-space: nowrap;
+}
+.rank-info {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+.rank-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 340px;
+  flex-shrink: 0;
+}
+.rank-badge-row .badge,
+.rank-badge-row .badge-placeholder {
+  margin-left: auto;
+}
+.sel-spacer {
+  flex: 1 1 auto;
+}
+.badge-placeholder {
+  display: inline-block;
+  width: 0;
+  flex-shrink: 0;
 }
 .sel-remove-btn {
   background: transparent;
@@ -338,7 +477,7 @@ body {
   font-size: 0.9rem;
   width: 32px;
   height: 32px;
-  border-radius: 6px;
+  border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -351,22 +490,57 @@ body {
   color: var(--accent-b);
 }
 
+/* Rank badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: "Inter", sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.badge-gold {
+  background: rgba(255, 215, 0, 0.15);
+  color: #ffd700;
+  border: 1px solid rgba(255, 215, 0, 0.35);
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+}
+.badge-silver {
+  background: rgba(192, 192, 192, 0.12);
+  color: #c0c0c0;
+  border: 1px solid rgba(192, 192, 192, 0.3);
+  text-shadow: 0 0 6px rgba(192, 192, 192, 0.3);
+}
+.badge-bronze {
+  background: rgba(205, 127, 50, 0.12);
+  color: #cd7f32;
+  border: 1px solid rgba(205, 127, 50, 0.3);
+  text-shadow: 0 0 6px rgba(205, 127, 50, 0.3);
+}
+
 /* Add button */
 .add-btn {
   background: transparent;
-  border: 1px dashed var(--border);
-  color: var(--muted);
+  border: 1px dashed var(--accent-p);
+  color: var(--accent-p);
   font-size: 0.72rem;
   padding: 0.35rem 1rem;
-  border-radius: 8px;
+  border-radius: 20px;
   letter-spacing: 0.06em;
   cursor: pointer;
   font-family: "Inter", sans-serif;
-  transition: all 0.15s;
+  transition: all 0.2s ease;
 }
 .add-btn:hover {
+  background: rgba(0, 212, 255, 0.1);
   border-color: var(--accent-p);
   color: var(--accent-p);
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.25);
 }
 
 /* disabled dropdown appearance */

@@ -41,35 +41,51 @@ for _g in CARD_GROUPS:
 
 METRIC_CONFIG = {
     "SMATH_Y1": {
-        "label": "Math Proficiency", "type": "linear", "direction": "higher",
+        "label": "Math Proficiency", "sidebar": ["Math", "Proficiency"],
+        "type": "linear", "direction": "higher",
         "default_weight": 8,
     },
     "SELA_Y1": {
-        "label": "English Language Arts", "type": "linear", "direction": "higher",
+        "label": "English Language Arts", "sidebar": ["ELA", "Proficiency"],
+        "type": "linear", "direction": "higher",
         "default_weight": 8,
     },
     "AVG_SIZE": {
-        "label": "Class Size", "type": "linear", "direction": "lower",
+        "label": "Class Size", "sidebar": ["Class", "Size"],
+        "type": "linear", "direction": "lower",
         "default_weight": 5,
     },
     "PERDI": {
-        "label": "Socio-Econ Disadvantaged", "type": "target",
+        "label": "Socio-Econ Disadvantaged", "sidebar": ["Socio-Econ", "Disadv."],
+        "type": "target",
         "options": {"Affluent": 0, "Mixed": 50, "Disadvantaged": 100},
         "default_weight": 3,
     },
     "PEREL": {
-        "label": "English Learners", "type": "target",
+        "label": "English Learners", "sidebar": ["English", "Learners"],
+        "type": "target",
         "options": {"Few EL": 0, "Balanced": 50, "EL-Rich": 100},
         "default_weight": 3,
     },
     "PERSD": {
-        "label": "Students w/ Disabilities", "type": "target",
+        "label": "Students w/ Disabilities", "sidebar": ["Students w/", "Disabilities"],
+        "type": "target",
         "options": {"Few SWD": 0, "Balanced": 50, "Inclusive": 100},
         "default_weight": 2,
     },
 }
 
 TARGET_COLS = [c for c in ALL_METRIC_COLS if METRIC_CONFIG[c]["type"] == "target"]
+
+# Build ordered list of target button identities (col, val) matching the ALL pattern
+# so we can set classNames deterministically in the toggle callback.
+TGT_BTN_IDS = []
+for col in TARGET_COLS:
+    opts = list(METRIC_CONFIG[col]["options"].keys())
+    if len(opts) > 2:
+        opts = [opts[0], opts[-1]]
+    for v in opts:
+        TGT_BTN_IDS.append({"col": col, "val": v})
 
 ALL_COUNTIES = sorted(DF_MASTER["County"].unique()) if len(DF_MASTER) else []
 DEFAULT_COUNTY = "San Diego" if "San Diego" in ALL_COUNTIES else (ALL_COUNTIES[0] if ALL_COUNTIES else "")
@@ -160,14 +176,23 @@ def build_sidebar():
             row = []
 
             # --- label row ------------------------------------------------
+            lines = mc.get("sidebar", [mc["label"]])
+            label_content = []
+            for i, ln in enumerate(lines):
+                if i > 0:
+                    label_content.append(html.Br())
+                label_content.append(ln)
             label_parts = [
-                html.Span(mc["label"], className="sidebar-label", style={"flex": "1"}),
+                html.Span(label_content, className="sidebar-label"),
             ]
             if mc["type"] == "target":
                 opts = list(mc["options"].keys())
                 if len(opts) > 2:
                     opts = [opts[0], opts[-1]]
                 label_parts.insert(1, html.Div([
+                    html.Div(id={"type": "tgt-slider", "col": col},
+                             className="tgt-slider",
+                             style={"left": "2px"}),
                     html.Button(opts[0], id={"type": "tgt-btn", "col": col, "val": opts[0]},
                                 className="tgt-btn active", n_clicks=0),
                     html.Button(opts[1], id={"type": "tgt-btn", "col": col, "val": opts[1]},
@@ -191,6 +216,7 @@ def build_sidebar():
 # ─── APP ───────────────────────────────────────────────────────────────
 app = Dash(__name__, suppress_callback_exceptions=True,
            title="School-Data Analytics", update_title=None)
+server = app.server  # expose for gunicorn
 
 app.layout = html.Div([
     dcc.Store(id="district-mode", data=True),
@@ -203,8 +229,14 @@ app.layout = html.Div([
         html.Div([
             # Top bar
             html.Div([
-                html.Button("Districts", id="mode-district", className="mode-btn active", n_clicks=0),
-                html.Button("Schools",   id="mode-school",   className="mode-btn inactive", n_clicks=0),
+                html.Div([
+                    html.Div(id="mode-slider", className="mode-slider",
+                             style={"left": "2px"}),
+                    html.Button("DISTRICTS", id="mode-district",
+                                className="mode-label active", n_clicks=0),
+                    html.Button("SCHOOLS", id="mode-school",
+                                className="mode-label", n_clicks=0),
+                ], className="mode-toggle-track"),
                 html.Div(dcc.Dropdown(
                     id="county-dropdown",
                     options=[{"label": c, "value": c} for c in ALL_COUNTIES],
@@ -251,14 +283,15 @@ app.layout = html.Div([
     Output("district-mode", "data"),
     Output("mode-district", "className"),
     Output("mode-school",   "className"),
+    Output("mode-slider",   "style"),
     Input("mode-district", "n_clicks"),
     Input("mode-school",   "n_clicks"),
     prevent_initial_call=True,
 )
 def toggle_mode(n_dist, n_sch):
     if ctx.triggered_id == "mode-district":
-        return True,  "mode-btn active", "mode-btn inactive"
-    return False, "mode-btn inactive", "mode-btn active"
+        return True, "mode-label active", "mode-label", {"left": "2px"}
+    return False, "mode-label", "mode-label active", {"left": "calc(50%)"}
 
 
 # ── Add / Remove selection ─────────────────────────────────────────────
@@ -280,6 +313,11 @@ def manage_selections(add_clicks, remove_clicks, selections, county):
         selections.append({"district": fd, "school": schs[0] if schs else ""})
         return selections
     if isinstance(triggered, dict) and triggered.get("type") == "sel-remove":
+        # Guard: when render_cards re-renders (slider/mode change), it recreates
+        # the remove buttons with n_clicks=0 which fires this callback as a
+        # phantom trigger.  Only process when a button was actually clicked.
+        if not any(rc for rc in (remove_clicks or []) if rc):
+            return no_update
         idx = triggered["index"]
         if len(selections) > 1 and 0 <= idx < len(selections):
             selections.pop(idx)
@@ -315,16 +353,28 @@ def render_cards(selections, district_mode, county, weights, tgt_values):
 
         # lookup score
         sr = lookup.get(d) if district_mode else lookup.get((d, s))
+        badge = None
         if sr:
             sc, rk = sr[0], int(sr[1])
             bg = score_bg(sc)
+            pct = rk / total if total else 1
+            if pct <= 0.05:
+                badge = html.Span("★ Top 5%", className="badge badge-gold")
+            elif pct <= 0.10:
+                badge = html.Span("★ Top 10%", className="badge badge-silver")
+            elif pct <= 0.25:
+                badge = html.Span("★ Top 25%", className="badge badge-bronze")
+
             score_children = [
                 html.Div([html.Span(f"{sc:.1f}")],
                          className="score-circle", style={"background": bg}),
                 html.Div([
-                    html.Span(f"#{rk}", className="rank-num"),
-                    html.Span(f"of {total} in {county} County", className="rank-ctx"),
-                ], className="rank-text"),
+                    html.Div([
+                        html.Span(f"#{rk}", className="rank-num"),
+                        html.Span(f"of {total} in {county} County", className="rank-ctx"),
+                    ], className="rank-info"),
+                    badge if badge else html.Span(className="badge-placeholder"),
+                ], className="rank-badge-row"),
             ]
         else:
             score_children = [
@@ -345,6 +395,7 @@ def render_cards(selections, district_mode, county, weights, tgt_values):
                 disabled=district_mode,
             ), className="sel-dropdown-school" + (" disabled" if district_mode else "")),
             html.Div(score_children, className="sel-score-area"),
+            html.Div(className="sel-spacer"),
             html.Button("✕", id={"type": "sel-remove", "index": i},
                         className="sel-remove-btn", n_clicks=0),
         ], className="sel-row", style={"marginBottom": "8px"}))
@@ -418,6 +469,13 @@ def update_table(selections, district_mode, county, weights, tgt_values):
     columns = [{"name": col_labels.get(c, c), "id": c,
                 "type": "numeric" if c not in ("School", "District") else "text"}
                for c in show]
+    # Ensure all numeric values display exactly 1 decimal place
+    num_cols = [c for c in show if c not in ("School", "District")]
+    display_df = display_df.copy()
+    for c in num_cols:
+        if c in display_df.columns:
+            display_df[c] = pd.to_numeric(display_df[c], errors="coerce").apply(
+                lambda v: f"{v:.1f}" if pd.notna(v) else "")
     records = display_df[show].to_dict("records")
 
     # Row highlighting
@@ -434,10 +492,14 @@ def update_table(selections, district_mode, county, weights, tgt_values):
     # Score column hue — use row_index for reliable matching
     for i, rec in enumerate(records):
         sv = rec.get("Custom Fit Score")
-        if sv is not None:
+        if sv is not None and sv != "":
+            try:
+                sv_num = float(sv)
+            except (ValueError, TypeError):
+                continue
             cond.append({
                 "if": {"row_index": i, "column_id": "Custom Fit Score"},
-                "backgroundColor": score_bg(sv),
+                "backgroundColor": score_bg(sv_num),
                 "color": "#181818", "fontWeight": "700", "textAlign": "center",
             })
 
@@ -447,6 +509,8 @@ def update_table(selections, district_mode, county, weights, tgt_values):
 # ── Target pref toggle ─────────────────────────────────────────────────
 @callback(
     Output({"type": "tgt-store", "col": ALL}, "data"),
+    Output({"type": "tgt-btn", "col": ALL, "val": ALL}, "className"),
+    Output({"type": "tgt-slider", "col": ALL}, "style"),
     Input({"type": "tgt-btn", "col": ALL, "val": ALL}, "n_clicks"),
     State({"type": "tgt-store", "col": ALL}, "data"),
     prevent_initial_call=True,
@@ -454,25 +518,57 @@ def update_table(selections, district_mode, county, weights, tgt_values):
 def toggle_target(_, current):
     triggered = ctx.triggered_id
     if not isinstance(triggered, dict):
-        return no_update
+        return no_update, no_update, no_update
     col, val = triggered["col"], triggered["val"]
     out = list(current)
     for i, tc in enumerate(TARGET_COLS):
         if tc == col:
             out[i] = val
-    return out
+
+    # Map col → active val from the updated store
+    active_map = {tc: out[i] for i, tc in enumerate(TARGET_COLS)}
+    # Build className list matching the ALL-pattern order of TGT_BTN_IDS
+    classes = []
+    for bid in TGT_BTN_IDS:
+        if bid["val"] == active_map.get(bid["col"]):
+            classes.append("tgt-btn active")
+        else:
+            classes.append("tgt-btn")
+    # Build slider positions for each target col
+    slider_styles = []
+    for tc in TARGET_COLS:
+        opts = list(METRIC_CONFIG[tc]["options"].keys())
+        if len(opts) > 2:
+            opts = [opts[0], opts[-1]]
+        if active_map[tc] == opts[0]:
+            slider_styles.append({"left": "2px"})
+        else:
+            slider_styles.append({"left": "calc(50% - 1px)"})
+    return out, classes, slider_styles
 
 
 # ── Reset ──────────────────────────────────────────────────────────────
 @callback(
     Output({"type": "weight-slider", "col": ALL}, "value"),
     Output({"type": "tgt-store", "col": ALL}, "data", allow_duplicate=True),
+    Output({"type": "tgt-btn", "col": ALL, "val": ALL}, "className", allow_duplicate=True),
+    Output({"type": "tgt-slider", "col": ALL}, "style", allow_duplicate=True),
     Input("reset-btn", "n_clicks"),
     prevent_initial_call=True,
 )
 def reset_all(_):
+    # Default active val per target col
+    defaults = {tc: list(METRIC_CONFIG[tc]["options"].keys())[0] for tc in TARGET_COLS}
+    classes = [
+        "tgt-btn active" if bid["val"] == defaults.get(bid["col"]) else "tgt-btn"
+        for bid in TGT_BTN_IDS
+    ]
+    # All sliders to left (first option is default)
+    slider_styles = [{"left": "2px"} for _ in TARGET_COLS]
     return ([METRIC_CONFIG[c]["default_weight"] for c in ALL_METRIC_COLS],
-            [list(METRIC_CONFIG[c]["options"].keys())[0] for c in TARGET_COLS])
+            [defaults[tc] for tc in TARGET_COLS],
+            classes,
+            slider_styles)
 
 
 # ═══════════════════════════════════════════════════════════════════════

@@ -1,4 +1,6 @@
-streamlit
+dash
 pandas
 plotly
 openpyxl
+pyarrow
+gunicorn
