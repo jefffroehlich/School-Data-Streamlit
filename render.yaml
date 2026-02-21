@@ -3,7 +3,7 @@ services:
     name: school-data-dash
     runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn dash_app:server -c gunicorn_config.py
+    startCommand: gunicorn wsgi -c gunicorn_config.py
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.6"
